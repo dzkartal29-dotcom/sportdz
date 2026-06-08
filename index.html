@@ -133,6 +133,16 @@ nav a:hover,nav a.active{color:var(--text);background:var(--card2)}
 .top3-stat{font-size:11px;color:var(--muted)}
 .top3-num{font-family:'Bebas Neue',sans-serif;font-size:24px;color:var(--green)}
 
+/* ARTICLE CARD */
+.article-card{background:var(--card);border:1px solid var(--border);border-radius:12px;overflow:hidden;transition:all .25s;cursor:pointer}
+.article-card:hover{border-color:rgba(0,200,81,0.3);transform:translateY(-2px)}
+.article-img{height:160px;background:linear-gradient(135deg,#0d2010,#080808);display:flex;align-items:center;justify-content:center;position:relative}
+.article-cat{position:absolute;top:12px;left:12px;background:var(--green);color:#000;font-size:10px;font-weight:700;padding:3px 10px;border-radius:4px;letter-spacing:.5px;text-transform:uppercase}
+.article-body{padding:14px}
+.article-title{font-size:14px;font-weight:600;line-height:1.4;margin-bottom:5px}
+.article-title-ar{font-family:'Cairo',sans-serif;font-size:12px;color:var(--muted);direction:rtl;margin-bottom:8px}
+.article-meta{font-size:11px;color:var(--muted);display:flex;gap:12px;flex-wrap:wrap}
+
 /* SIDEBAR */
 .sidebar-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:18px;margin-bottom:14px}
 .sidebar-title{font-family:'Bebas Neue',sans-serif;font-size:17px;letter-spacing:1px;margin-bottom:14px;color:var(--green)}
@@ -271,6 +281,20 @@ footer{background:var(--dark);border-top:1px solid var(--border);padding:44px 24
           </div>
         </div>
       </div>
+    </div>
+  </div>
+</section>
+
+<!-- ARTICLES -->
+<section class="section" id="actu" style="padding-top:0">
+  <div class="container">
+    <div class="section-head">
+      <div class="section-title">Actualités</div>
+      <div class="section-title-ar ar">أحدث الأخبار</div>
+      <div class="section-line"></div>
+    </div>
+    <div class="grid-3" id="articles-container">
+      <div class="placeholder-state"><div class="spinner"></div><div>Chargement des articles...</div></div>
     </div>
   </div>
 </section>
