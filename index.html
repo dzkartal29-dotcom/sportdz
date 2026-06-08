@@ -1,0 +1,866 @@
+<!DOCTYPE html>
+<html lang="fr" dir="ltr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SportDZ — أخبار الرياضة الجزائرية</title>
+<meta name="description" content="SportDZ - Scores, résultats et actualités sportives en direct | نتائج ومباريات مباشرة">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Cairo:wght@400;600;700&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --green: #00C851;
+    --green-dark: #007A32;
+    --green-glow: rgba(0,200,81,0.15);
+    --black: #0A0A0A;
+    --dark: #111111;
+    --card: #161616;
+    --card2: #1C1C1C;
+    --border: rgba(255,255,255,0.07);
+    --text: #F0F0F0;
+    --muted: #888;
+    --red: #FF3B3B;
+    --gold: #FFD700;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--black);
+    color: var(--text);
+    font-family: 'Barlow', sans-serif;
+    font-size: 15px;
+    line-height: 1.6;
+    overflow-x: hidden;
+  }
+  .ar { font-family: 'Cairo', sans-serif; }
+
+  /* ── HEADER ── */
+  header {
+    position: sticky; top: 0; z-index: 100;
+    background: rgba(10,10,10,0.95);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border);
+    padding: 0 24px;
+  }
+  .header-inner {
+    max-width: 1200px; margin: 0 auto;
+    display: flex; align-items: center; justify-content: space-between;
+    height: 60px;
+  }
+  .logo {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 32px; letter-spacing: 2px;
+    color: var(--text);
+    text-decoration: none;
+  }
+  .logo span { color: var(--green); }
+  .logo-ar {
+    font-family: 'Cairo', sans-serif;
+    font-size: 13px; font-weight: 600;
+    color: var(--muted); margin-left: 8px;
+    letter-spacing: 0;
+  }
+  nav { display: flex; gap: 6px; align-items: center; }
+  nav a {
+    color: var(--muted); text-decoration: none;
+    font-size: 13px; font-weight: 500;
+    padding: 6px 14px; border-radius: 6px;
+    transition: all .2s;
+    letter-spacing: .3px;
+  }
+  nav a:hover, nav a.active { color: var(--text); background: var(--card2); }
+  .live-badge {
+    background: var(--red); color: #fff;
+    font-size: 11px; font-weight: 700;
+    padding: 3px 10px; border-radius: 20px;
+    letter-spacing: 1px; animation: pulse 2s infinite;
+  }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.7} }
+  .lang-toggle {
+    background: var(--card2); border: 1px solid var(--border);
+    color: var(--text); font-size: 12px; font-weight: 600;
+    padding: 5px 12px; border-radius: 6px; cursor: pointer;
+    font-family: 'Cairo', sans-serif; transition: all .2s;
+  }
+  .lang-toggle:hover { background: var(--green); color: #000; border-color: var(--green); }
+
+  /* ── HERO ── */
+  .hero {
+    background: linear-gradient(160deg, #0d1f0d 0%, #0A0A0A 50%);
+    padding: 60px 24px 40px;
+    position: relative; overflow: hidden;
+  }
+  .hero::before {
+    content: 'SPORT';
+    position: absolute; right: -40px; top: -20px;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 220px; color: rgba(0,200,81,0.04);
+    line-height: 1; pointer-events: none; user-select: none;
+  }
+  .hero-inner { max-width: 1200px; margin: 0 auto; }
+  .hero-tag {
+    display: inline-flex; align-items: center; gap: 6px;
+    background: var(--green-glow); border: 1px solid rgba(0,200,81,0.3);
+    color: var(--green); font-size: 12px; font-weight: 600;
+    padding: 5px 14px; border-radius: 20px; margin-bottom: 20px;
+    letter-spacing: .5px;
+  }
+  .hero-tag::before { content:''; width:7px; height:7px; background:var(--green); border-radius:50%; animation: pulse 1.5s infinite; }
+  .hero h1 {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(48px, 8vw, 88px);
+    line-height: .95; letter-spacing: 2px;
+    margin-bottom: 12px;
+  }
+  .hero h1 em { color: var(--green); font-style: normal; }
+  .hero-sub {
+    font-family: 'Cairo', sans-serif;
+    font-size: 18px; color: var(--muted);
+    margin-bottom: 32px; direction: rtl;
+  }
+  .hero-stats {
+    display: flex; gap: 32px; flex-wrap: wrap;
+  }
+  .hstat { text-align: center; }
+  .hstat-num {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 36px; color: var(--green); line-height: 1;
+  }
+  .hstat-label { font-size: 11px; color: var(--muted); letter-spacing: .5px; text-transform: uppercase; }
+
+  /* ── TICKER ── */
+  .ticker-wrap {
+    background: var(--green); overflow: hidden;
+    padding: 8px 0;
+  }
+  .ticker {
+    display: flex; gap: 60px;
+    animation: ticker 25s linear infinite;
+    white-space: nowrap;
+  }
+  @keyframes ticker { from{transform:translateX(0)} to{transform:translateX(-50%)} }
+  .ticker-item {
+    font-size: 13px; font-weight: 600; color: #000;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .ticker-score { background: rgba(0,0,0,0.15); padding: 1px 8px; border-radius: 4px; }
+
+  /* ── LAYOUT ── */
+  .container { max-width: 1200px; margin: 0 auto; padding: 0 24px; }
+  .section { padding: 48px 0; }
+  .section-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 28px; letter-spacing: 1px;
+    margin-bottom: 24px;
+    display: flex; align-items: center; gap: 12px;
+  }
+  .section-title::after {
+    content: ''; flex: 1; height: 1px;
+    background: var(--border);
+  }
+  .section-title-ar {
+    font-family: 'Cairo', sans-serif;
+    font-size: 13px; color: var(--muted);
+    font-weight: 600;
+  }
+  .grid-3 { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 16px; }
+  .grid-2 { display: grid; grid-template-columns: 2fr 1fr; gap: 20px; }
+
+  /* ── SCORE CARD ── */
+  .score-card {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 12px; padding: 16px 20px;
+    transition: all .25s; cursor: pointer;
+  }
+  .score-card:hover { border-color: rgba(0,200,81,0.4); background: var(--card2); transform: translateY(-2px); }
+  .score-league {
+    font-size: 11px; color: var(--muted); letter-spacing: .5px;
+    text-transform: uppercase; margin-bottom: 12px;
+    display: flex; align-items: center; gap: 6px;
+  }
+  .score-league::before { content:''; width:6px; height:6px; background:var(--green); border-radius:50%; }
+  .score-match {
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 12px;
+  }
+  .team { display: flex; flex-direction: column; align-items: center; gap: 6px; flex: 1; }
+  .team-logo {
+    width: 40px; height: 40px; border-radius: 50%;
+    background: var(--card2); border: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 20px;
+  }
+  .team-name { font-size: 13px; font-weight: 600; text-align: center; }
+  .score-center { text-align: center; }
+  .score-num {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 40px; line-height: 1;
+    color: var(--text); letter-spacing: 4px;
+  }
+  .score-time {
+    font-size: 11px; font-weight: 700;
+    padding: 2px 8px; border-radius: 4px; margin-top: 4px;
+    display: inline-block;
+  }
+  .live { background: rgba(255,59,59,0.2); color: var(--red); }
+  .finished { background: rgba(136,136,136,0.15); color: var(--muted); }
+  .upcoming { background: var(--green-glow); color: var(--green); }
+
+  /* ── ARTICLE CARD ── */
+  .article-card {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 12px; overflow: hidden;
+    transition: all .25s; cursor: pointer;
+  }
+  .article-card:hover { border-color: rgba(0,200,81,0.3); transform: translateY(-2px); }
+  .article-img {
+    height: 180px; background: var(--card2);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 48px; position: relative; overflow: hidden;
+  }
+  .article-img::after {
+    content: ''; position: absolute; inset: 0;
+    background: linear-gradient(to top, var(--card) 0%, transparent 60%);
+  }
+  .article-cat {
+    position: absolute; top: 12px; left: 12px;
+    background: var(--green); color: #000;
+    font-size: 10px; font-weight: 700;
+    padding: 3px 10px; border-radius: 4px;
+    letter-spacing: .5px; text-transform: uppercase;
+    z-index: 1;
+  }
+  .article-body { padding: 16px; }
+  .article-title {
+    font-size: 15px; font-weight: 600; line-height: 1.4;
+    margin-bottom: 6px;
+  }
+  .article-title-ar {
+    font-family: 'Cairo', sans-serif;
+    font-size: 14px; color: var(--muted);
+    direction: rtl; margin-bottom: 10px;
+  }
+  .article-meta {
+    font-size: 11px; color: var(--muted);
+    display: flex; align-items: center; gap: 12px;
+  }
+  .article-meta span { display: flex; align-items: center; gap: 4px; }
+
+  /* ── STANDINGS ── */
+  .standings-table { width: 100%; border-collapse: collapse; }
+  .standings-table th {
+    font-size: 11px; color: var(--muted); font-weight: 600;
+    padding: 8px 12px; text-align: left;
+    border-bottom: 1px solid var(--border);
+    letter-spacing: .5px; text-transform: uppercase;
+  }
+  .standings-table td {
+    padding: 10px 12px; font-size: 13px;
+    border-bottom: 1px solid rgba(255,255,255,0.03);
+  }
+  .standings-table tr:hover td { background: var(--card2); }
+  .standings-table tr.highlight td { background: rgba(0,200,81,0.05); }
+  .rank { font-family: 'Bebas Neue', sans-serif; font-size: 16px; color: var(--muted); width: 32px; }
+  .rank.top { color: var(--green); }
+  .rank.rel { color: var(--red); }
+  .pts { font-weight: 700; color: var(--text); }
+  .form-dots { display: flex; gap: 3px; }
+  .fd { width:8px; height:8px; border-radius:50%; }
+  .fw { background: var(--green); }
+  .fd2 { background: var(--gold); }
+  .fl { background: var(--red); }
+
+  /* ── SIDEBAR ── */
+  .sidebar-card {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 12px; padding: 20px; margin-bottom: 16px;
+  }
+  .sidebar-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 18px; letter-spacing: 1px; margin-bottom: 16px;
+    color: var(--green);
+  }
+  .next-match {
+    background: var(--card2); border-radius: 8px;
+    padding: 14px; margin-bottom: 10px;
+    border: 1px solid var(--border);
+  }
+  .nm-league { font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: .5px; margin-bottom: 8px; }
+  .nm-teams { display: flex; align-items: center; justify-content: space-between; font-size: 13px; font-weight: 600; }
+  .nm-vs { font-family: 'Bebas Neue', sans-serif; font-size: 18px; color: var(--muted); }
+  .nm-time { font-size: 11px; color: var(--green); margin-top: 6px; font-weight: 600; }
+
+  /* ── CTA BANNER ── */
+  .cta-banner {
+    background: linear-gradient(135deg, var(--green-dark), #004d1f);
+    border-radius: 16px; padding: 36px; margin: 0 0 48px;
+    display: flex; align-items: center; justify-content: space-between;
+    flex-wrap: wrap; gap: 20px; position: relative; overflow: hidden;
+  }
+  .cta-banner::before {
+    content: '⚽'; position: absolute; right: 40px; top: 50%;
+    transform: translateY(-50%); font-size: 100px; opacity: .08;
+  }
+  .cta-text h3 {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 28px; letter-spacing: 1px; margin-bottom: 4px;
+  }
+  .cta-text p { font-size: 14px; color: rgba(255,255,255,0.7); }
+  .cta-text p.ar-text { font-family: 'Cairo', sans-serif; direction: rtl; }
+  .btn-cta {
+    background: #fff; color: #000;
+    font-size: 14px; font-weight: 700;
+    padding: 12px 28px; border-radius: 8px;
+    text-decoration: none; letter-spacing: .5px;
+    transition: all .2s; white-space: nowrap;
+  }
+  .btn-cta:hover { background: var(--green); transform: translateY(-2px); }
+
+  /* ── FOOTER ── */
+  footer {
+    background: var(--dark); border-top: 1px solid var(--border);
+    padding: 48px 24px 24px;
+  }
+  .footer-inner { max-width: 1200px; margin: 0 auto; }
+  .footer-grid { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 40px; margin-bottom: 40px; }
+  .footer-logo {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 36px; color: var(--text); margin-bottom: 10px;
+  }
+  .footer-logo span { color: var(--green); }
+  .footer-desc { font-size: 13px; color: var(--muted); line-height: 1.7; margin-bottom: 10px; }
+  .footer-desc-ar { font-family: 'Cairo', sans-serif; direction: rtl; font-size: 13px; color: var(--muted); }
+  .footer-col h4 { font-size: 13px; font-weight: 700; margin-bottom: 14px; letter-spacing: .5px; text-transform: uppercase; }
+  .footer-col a { display: block; color: var(--muted); text-decoration: none; font-size: 13px; margin-bottom: 8px; transition: color .2s; }
+  .footer-col a:hover { color: var(--green); }
+  .footer-bottom {
+    border-top: 1px solid var(--border); padding-top: 20px;
+    display: flex; justify-content: space-between; align-items: center;
+    font-size: 12px; color: var(--muted); flex-wrap: wrap; gap: 10px;
+  }
+  .social-links { display: flex; gap: 10px; }
+  .social-link {
+    width: 34px; height: 34px; background: var(--card2);
+    border: 1px solid var(--border); border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    text-decoration: none; font-size: 16px; transition: all .2s;
+  }
+  .social-link:hover { background: var(--green); border-color: var(--green); }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 768px) {
+    .grid-2 { grid-template-columns: 1fr; }
+    .footer-grid { grid-template-columns: 1fr 1fr; }
+    nav a:not(.live-badge) { display: none; }
+    .hero h1 { font-size: 52px; }
+    .hero::before { font-size: 120px; }
+  }
+  @media (max-width: 480px) {
+    .footer-grid { grid-template-columns: 1fr; }
+    .cta-banner { flex-direction: column; text-align: center; }
+  }
+
+  /* ── ANIMATIONS ── */
+  @keyframes fadeUp {
+    from { opacity:0; transform:translateY(20px); }
+    to { opacity:1; transform:translateY(0); }
+  }
+  .fade-up { animation: fadeUp .5s ease forwards; }
+  .delay-1 { animation-delay: .1s; opacity:0; }
+  .delay-2 { animation-delay: .2s; opacity:0; }
+  .delay-3 { animation-delay: .3s; opacity:0; }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header>
+  <div class="header-inner">
+    <a href="#" class="logo">Sport<span>DZ</span> <span class="logo-ar ar">الجزائر الرياضية</span></a>
+    <nav>
+      <a href="#scores" class="active">Scores</a>
+      <a href="#actu">Actualités</a>
+      <a href="#classement">Classement</a>
+      <a href="#" class="live-badge">🔴 LIVE</a>
+      <button class="lang-toggle ar" onclick="toggleLang()">ع / Fr</button>
+    </nav>
+  </div>
+</header>
+
+<!-- TICKER -->
+<div class="ticker-wrap">
+  <div class="ticker" id="ticker">
+    <span class="ticker-item">🇩🇿 Algérie — Tunisie <span class="ticker-score">2 - 1</span></span>
+    <span class="ticker-item">⚽ PSG — Real Madrid <span class="ticker-score">1 - 0</span></span>
+    <span class="ticker-item">🏆 Ligue 1 Algérie — JSK — MCAlger <span class="ticker-score">0 - 0 · 67'</span></span>
+    <span class="ticker-item">🌍 CAF Champions League — Wydad — Ahly <span class="ticker-score">1 - 2</span></span>
+    <span class="ticker-item ar">🇩🇿 المنتخب الجزائري يفوز 2-1 أمام تونس</span>
+    <span class="ticker-item">⚽ Barcelona — Atletico <span class="ticker-score">3 - 1</span></span>
+    <span class="ticker-item">🇩🇿 Algérie — Tunisie <span class="ticker-score">2 - 1</span></span>
+    <span class="ticker-item">⚽ PSG — Real Madrid <span class="ticker-score">1 - 0</span></span>
+    <span class="ticker-item">🏆 Ligue 1 Algérie — JSK — MCAlger <span class="ticker-score">0 - 0 · 67'</span></span>
+    <span class="ticker-item">🌍 CAF Champions League — Wydad — Ahly <span class="ticker-score">1 - 2</span></span>
+  </div>
+</div>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-inner">
+    <div class="hero-tag fade-up">Scores en direct · أخبار مباشرة</div>
+    <h1 class="fade-up delay-1">SPORT<em>DZ</em><br>LIVE</h1>
+    <p class="hero-sub fade-up delay-2 ar">أخبار الرياضة الجزائرية والعالمية في مكان واحد</p>
+    <div class="hero-stats fade-up delay-3">
+      <div class="hstat"><div class="hstat-num">24/7</div><div class="hstat-label">Couverture</div></div>
+      <div class="hstat"><div class="hstat-num">50+</div><div class="hstat-label">Ligues</div></div>
+      <div class="hstat"><div class="hstat-num">1000+</div><div class="hstat-label">Matchs/mois</div></div>
+      <div class="hstat"><div class="hstat-num">🇩🇿</div><div class="hstat-label">Focus Algérie</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- SCORES SECTION -->
+<section class="section" id="scores">
+  <div class="container">
+    <div class="section-title">
+      Scores du jour
+      <span class="section-title-ar ar">نتائج اليوم</span>
+    </div>
+    <div class="grid-3">
+
+      <div class="score-card">
+        <div class="score-league">🇩🇿 Ligue Professionnelle 1 — Algérie</div>
+        <div class="score-match">
+          <div class="team">
+            <div class="team-logo">🟡</div>
+            <div class="team-name">JSK</div>
+          </div>
+          <div class="score-center">
+            <div class="score-num">0 - 0</div>
+            <span class="score-time live">🔴 67'</span>
+          </div>
+          <div class="team">
+            <div class="team-logo">🔴</div>
+            <div class="team-name">MC Alger</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="score-card">
+        <div class="score-league">🌍 CAF Champions League</div>
+        <div class="score-match">
+          <div class="team">
+            <div class="team-logo">🔴</div>
+            <div class="team-name">Wydad</div>
+          </div>
+          <div class="score-center">
+            <div class="score-num">1 - 2</div>
+            <span class="score-time finished">FT</span>
+          </div>
+          <div class="team">
+            <div class="team-logo">🔴</div>
+            <div class="team-name">Al Ahly</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="score-card">
+        <div class="score-league">🇫🇷 Ligue 1 — France</div>
+        <div class="score-match">
+          <div class="team">
+            <div class="team-logo">🔵</div>
+            <div class="team-name">PSG</div>
+          </div>
+          <div class="score-center">
+            <div class="score-num">1 - 0</div>
+            <span class="score-time finished">FT</span>
+          </div>
+          <div class="team">
+            <div class="team-logo">⚪</div>
+            <div class="team-name">Real Madrid</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="score-card">
+        <div class="score-league">🇪🇸 La Liga — Espagne</div>
+        <div class="score-match">
+          <div class="team">
+            <div class="team-logo">🔵🔴</div>
+            <div class="team-name">Barcelona</div>
+          </div>
+          <div class="score-center">
+            <div class="score-num">3 - 1</div>
+            <span class="score-time finished">FT</span>
+          </div>
+          <div class="team">
+            <div class="team-logo">🔴⚪</div>
+            <div class="team-name">Atlético</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="score-card">
+        <div class="score-league">🇩🇿 Équipe nationale</div>
+        <div class="score-match">
+          <div class="team">
+            <div class="team-logo">🇩🇿</div>
+            <div class="team-name">Algérie</div>
+          </div>
+          <div class="score-center">
+            <div class="score-num">2 - 1</div>
+            <span class="score-time finished">FT</span>
+          </div>
+          <div class="team">
+            <div class="team-logo">🇹🇳</div>
+            <div class="team-name">Tunisie</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="score-card">
+        <div class="score-league">🏴󠁧󠁢󠁥󠁮󠁧󠁿 Premier League</div>
+        <div class="score-match">
+          <div class="team">
+            <div class="team-logo">🔵</div>
+            <div class="team-name">Man City</div>
+          </div>
+          <div class="score-center">
+            <div class="score-num">21:00</div>
+            <span class="score-time upcoming">À venir</span>
+          </div>
+          <div class="team">
+            <div class="team-logo">🔴</div>
+            <div class="team-name">Liverpool</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ACTU + SIDEBAR -->
+<section class="section" id="actu" style="padding-top:0">
+  <div class="container">
+    <div class="grid-2">
+      <div>
+        <div class="section-title">
+          Actualités
+          <span class="section-title-ar ar">أحدث الأخبار</span>
+        </div>
+        <div class="grid-3" style="grid-template-columns:1fr 1fr">
+
+          <div class="article-card">
+            <div class="article-img" style="background: linear-gradient(135deg,#1a3a1a,#0d2010)">
+              🇩🇿
+              <div class="article-cat">Nationale</div>
+            </div>
+            <div class="article-body">
+              <div class="article-title">Les Fennecs s'imposent face à la Tunisie (2-1)</div>
+              <div class="article-title-ar">الخضر يفوزون على تونس 2-1 في مباراة مثيرة</div>
+              <div class="article-meta">
+                <span>⏱ Il y a 2h</span>
+                <span>👁 12.4k vues</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="article-card">
+            <div class="article-img" style="background: linear-gradient(135deg,#1a1a3a,#0d0d20)">
+              ⚽
+              <div class="article-cat">Ligue 1</div>
+            </div>
+            <div class="article-body">
+              <div class="article-title">JSK vs MCA : le derby en direct ce soir</div>
+              <div class="article-title-ar">ديربي الجزائر: شبيبة القبائل ضد مولودية الجزائر</div>
+              <div class="article-meta">
+                <span>⏱ Il y a 5h</span>
+                <span>👁 8.1k vues</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="article-card">
+            <div class="article-img" style="background: linear-gradient(135deg,#2a1a0a,#1a0d00)">
+              🏆
+              <div class="article-cat">CAN 2025</div>
+            </div>
+            <div class="article-body">
+              <div class="article-title">CAN 2025 : le calendrier complet de l'Algérie</div>
+              <div class="article-title-ar">كأس أمم أفريقيا 2025: برنامج مباريات المنتخب</div>
+              <div class="article-meta">
+                <span>⏱ Hier</span>
+                <span>👁 24.7k vues</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="article-card">
+            <div class="article-img" style="background: linear-gradient(135deg,#1a0a1a,#100010)">
+              📊
+              <div class="article-cat">Stats</div>
+            </div>
+            <div class="article-body">
+              <div class="article-title">Top 10 buteurs algériens en Europe 2024-25</div>
+              <div class="article-title-ar">أفضل 10 هدافين جزائريين في الدوريات الأوروبية</div>
+              <div class="article-meta">
+                <span>⏱ Il y a 2j</span>
+                <span>👁 18.9k vues</span>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- SIDEBAR -->
+      <div>
+        <div class="section-title" style="font-size:20px">
+          À venir
+          <span class="section-title-ar ar" style="font-size:12px">المباريات القادمة</span>
+        </div>
+
+        <div class="sidebar-card">
+          <div class="sidebar-title">Prochains matchs</div>
+
+          <div class="next-match">
+            <div class="nm-league">🏴󠁧󠁢󠁥󠁮󠁧󠁿 Premier League</div>
+            <div class="nm-teams">
+              <span>Man City</span>
+              <span class="nm-vs">VS</span>
+              <span>Liverpool</span>
+            </div>
+            <div class="nm-time">⏰ Aujourd'hui 21:00</div>
+          </div>
+
+          <div class="next-match">
+            <div class="nm-league">🇩🇪 Bundesliga</div>
+            <div class="nm-teams">
+              <span>Bayern</span>
+              <span class="nm-vs">VS</span>
+              <span>Dortmund</span>
+            </div>
+            <div class="nm-time">⏰ Demain 18:30</div>
+          </div>
+
+          <div class="next-match">
+            <div class="nm-league">🇮🇹 Serie A</div>
+            <div class="nm-teams">
+              <span>Inter</span>
+              <span class="nm-vs">VS</span>
+              <span>Juventus</span>
+            </div>
+            <div class="nm-time">⏰ Demain 20:45</div>
+          </div>
+
+          <div class="next-match">
+            <div class="nm-league">🇩🇿 Ligue 1 DZ</div>
+            <div class="nm-teams">
+              <span>USM Alger</span>
+              <span class="nm-vs">VS</span>
+              <span>CR Belouizdad</span>
+            </div>
+            <div class="nm-time">⏰ Vendredi 20:00</div>
+          </div>
+        </div>
+
+        <div class="sidebar-card">
+          <div class="sidebar-title ar">تابعنا — Suivez-nous</div>
+          <div style="display:flex; flex-direction:column; gap:8px;">
+            <a href="#" style="background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:10px 14px;color:var(--text);text-decoration:none;font-size:13px;display:flex;align-items:center;gap:10px;transition:all .2s" onmouseover="this.style.borderColor='#00C851'" onmouseout="this.style.borderColor='rgba(255,255,255,0.07)'">
+              📱 Canal Telegram SportDZ
+              <span style="margin-left:auto;color:var(--green);font-size:11px;font-weight:700">+2.4k</span>
+            </a>
+            <a href="#" style="background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:10px 14px;color:var(--text);text-decoration:none;font-size:13px;display:flex;align-items:center;gap:10px;transition:all .2s" onmouseover="this.style.borderColor='#00C851'" onmouseout="this.style.borderColor='rgba(255,255,255,0.07)'">
+              🎵 TikTok @SportDZ
+              <span style="margin-left:auto;color:var(--green);font-size:11px;font-weight:700">+8.1k</span>
+            </a>
+            <a href="#" style="background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:10px 14px;color:var(--text);text-decoration:none;font-size:13px;display:flex;align-items:center;gap:10px;transition:all .2s" onmouseover="this.style.borderColor='#00C851'" onmouseout="this.style.borderColor='rgba(255,255,255,0.07)'">
+              📘 Facebook SportDZ
+              <span style="margin-left:auto;color:var(--green);font-size:11px;font-weight:700">+5.6k</span>
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CLASSEMENT -->
+<section class="section" id="classement" style="padding-top:0">
+  <div class="container">
+    <div class="section-title">
+      Classement Ligue 1 Algérie
+      <span class="section-title-ar ar">ترتيب الدوري الجزائري</span>
+    </div>
+    <div style="background:var(--card);border:1px solid var(--border);border-radius:12px;overflow:hidden">
+      <table class="standings-table">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Équipe / الفريق</th>
+            <th>J</th><th>G</th><th>N</th><th>P</th>
+            <th>Buts</th>
+            <th>Pts</th>
+            <th>Forme</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="highlight">
+            <td class="rank top">1</td>
+            <td><strong>CR Belouizdad</strong></td>
+            <td>28</td><td>18</td><td>6</td><td>4</td>
+            <td>54:22</td>
+            <td class="pts">60</td>
+            <td><div class="form-dots"><div class="fd fw"></div><div class="fd fw"></div><div class="fd fd2"></div><div class="fd fw"></div><div class="fd fw"></div></div></td>
+          </tr>
+          <tr>
+            <td class="rank top">2</td>
+            <td><strong>USM Alger</strong></td>
+            <td>28</td><td>16</td><td>7</td><td>5</td>
+            <td>48:28</td>
+            <td class="pts">55</td>
+            <td><div class="form-dots"><div class="fd fw"></div><div class="fd fl"></div><div class="fd fw"></div><div class="fd fw"></div><div class="fd fd2"></div></div></td>
+          </tr>
+          <tr>
+            <td class="rank top">3</td>
+            <td><strong>MC Alger</strong></td>
+            <td>28</td><td>15</td><td>6</td><td>7</td>
+            <td>40:30</td>
+            <td class="pts">51</td>
+            <td><div class="form-dots"><div class="fd fd2"></div><div class="fd fw"></div><div class="fd fw"></div><div class="fd fl"></div><div class="fd fw"></div></div></td>
+          </tr>
+          <tr>
+            <td class="rank">4</td>
+            <td>JS Kabylie</td>
+            <td>28</td><td>13</td><td>8</td><td>7</td>
+            <td>38:29</td>
+            <td class="pts">47</td>
+            <td><div class="form-dots"><div class="fd fw"></div><div class="fd fw"></div><div class="fd fd2"></div><div class="fd fd2"></div><div class="fd fw"></div></div></td>
+          </tr>
+          <tr>
+            <td class="rank">5</td>
+            <td>ES Sétif</td>
+            <td>28</td><td>12</td><td>9</td><td>7</td>
+            <td>35:27</td>
+            <td class="pts">45</td>
+            <td><div class="form-dots"><div class="fd fl"></div><div class="fd fw"></div><div class="fd fw"></div><div class="fd fd2"></div><div class="fd fw"></div></div></td>
+          </tr>
+          <tr>
+            <td class="rank rel">16</td>
+            <td style="color:var(--muted)">ASM Oran</td>
+            <td>28</td><td>5</td><td>6</td><td>17</td>
+            <td>18:48</td>
+            <td class="pts" style="color:var(--red)">21</td>
+            <td><div class="form-dots"><div class="fd fl"></div><div class="fd fl"></div><div class="fd fd2"></div><div class="fd fl"></div><div class="fd fl"></div></div></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <div style="display:flex;gap:16px;margin-top:12px;font-size:11px;color:var(--muted)">
+      <span><span style="color:var(--green)">●</span> Qualification UEFA</span>
+      <span><span style="color:var(--red)">●</span> Relégation</span>
+      <span>W=Victoire · N=Nul · D=Défaite</span>
+    </div>
+  </div>
+</section>
+
+<!-- CTA BANNER -->
+<section style="padding:0 24px 48px">
+  <div class="container">
+    <div class="cta-banner">
+      <div class="cta-text">
+        <h3>Notifications en temps réel</h3>
+        <p>Rejoins le canal Telegram — scores, buts et alertes instantanées</p>
+        <p class="ar-text ar">انضم إلى قناتنا على تيليغرام للحصول على النتائج فور صدورها</p>
+      </div>
+      <a href="#" class="btn-cta">📱 Rejoindre Telegram</a>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-inner">
+    <div class="footer-grid">
+      <div>
+        <div class="footer-logo">Sport<span>DZ</span></div>
+        <p class="footer-desc">Le premier site algérien de scores et d'actualités sportives en temps réel.</p>
+        <p class="footer-desc-ar ar">أول موقع جزائري للنتائج والأخبار الرياضية في الوقت الفعلي</p>
+        <div class="social-links" style="margin-top:16px">
+          <a href="#" class="social-link">📱</a>
+          <a href="#" class="social-link">🎵</a>
+          <a href="#" class="social-link">📘</a>
+          <a href="#" class="social-link">▶️</a>
+        </div>
+      </div>
+      <div class="footer-col">
+        <h4>Sports</h4>
+        <a href="#">Football</a>
+        <a href="#">Basketball</a>
+        <a href="#">Handball</a>
+        <a href="#">Tennis</a>
+        <a href="#">Athlétisme</a>
+      </div>
+      <div class="footer-col">
+        <h4>Ligues</h4>
+        <a href="#">Ligue 1 DZ 🇩🇿</a>
+        <a href="#">Premier League</a>
+        <a href="#">La Liga</a>
+        <a href="#">Ligue 1 FR</a>
+        <a href="#">CAF Champions</a>
+      </div>
+      <div class="footer-col">
+        <h4>Site</h4>
+        <a href="#">À propos</a>
+        <a href="#">Contact</a>
+        <a href="#">Publicité</a>
+        <a href="#">Politique</a>
+        <a href="#">Newsletter</a>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span>© 2025 SportDZ — Tous droits réservés</span>
+      <span class="ar">جميع الحقوق محفوظة · SportDZ 2025</span>
+    </div>
+  </div>
+</footer>
+
+<script>
+  let isAr = false;
+  function toggleLang() {
+    isAr = !isAr;
+    document.documentElement.lang = isAr ? 'ar' : 'fr';
+    document.documentElement.dir = isAr ? 'rtl' : 'ltr';
+  }
+
+  // Animate on scroll
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        e.target.style.animation = 'fadeUp .5s ease forwards';
+        observer.unobserve(e.target);
+      }
+    });
+  }, { threshold: 0.1 });
+  document.querySelectorAll('.score-card, .article-card, .sidebar-card').forEach(el => {
+    el.style.opacity = '0';
+    observer.observe(el);
+  });
+
+  // Live clock update
+  function updateTime() {
+    const now = new Date();
+    const h = String(now.getHours()).padStart(2,'0');
+    const m = String(now.getMinutes()).padStart(2,'0');
+    document.querySelectorAll('.live').forEach(el => {
+      if (el.textContent.includes("'")) {
+        const min = parseInt(el.textContent) + 1;
+        if (min <= 90) el.textContent = `🔴 ${min}'`;
+      }
+    });
+  }
+  setInterval(updateTime, 30000);
+</script>
+</body>
+</html>
