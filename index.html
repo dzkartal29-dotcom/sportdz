@@ -425,116 +425,12 @@
       Scores du jour
       <span class="section-title-ar ar">نتائج اليوم</span>
     </div>
-    <div class="grid-3">
-
-      <div class="score-card">
-        <div class="score-league">🇩🇿 Ligue Professionnelle 1 — Algérie</div>
-        <div class="score-match">
-          <div class="team">
-            <div class="team-logo">🟡</div>
-            <div class="team-name">JSK</div>
-          </div>
-          <div class="score-center">
-            <div class="score-num">0 - 0</div>
-            <span class="score-time live">🔴 67'</span>
-          </div>
-          <div class="team">
-            <div class="team-logo">🔴</div>
-            <div class="team-name">MC Alger</div>
-          </div>
-        </div>
+    <div class="grid-3" id="scores-container">
+      <div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--muted)">
+        <div style="font-size:32px;margin-bottom:12px">⚽</div>
+        <div>Chargement des scores en direct...</div>
+        <div style="font-family:'Cairo',sans-serif;font-size:13px;margin-top:4px">جاري تحميل النتائج...</div>
       </div>
-
-      <div class="score-card">
-        <div class="score-league">🌍 CAF Champions League</div>
-        <div class="score-match">
-          <div class="team">
-            <div class="team-logo">🔴</div>
-            <div class="team-name">Wydad</div>
-          </div>
-          <div class="score-center">
-            <div class="score-num">1 - 2</div>
-            <span class="score-time finished">FT</span>
-          </div>
-          <div class="team">
-            <div class="team-logo">🔴</div>
-            <div class="team-name">Al Ahly</div>
-          </div>
-        </div>
-      </div>
-
-      <div class="score-card">
-        <div class="score-league">🇫🇷 Ligue 1 — France</div>
-        <div class="score-match">
-          <div class="team">
-            <div class="team-logo">🔵</div>
-            <div class="team-name">PSG</div>
-          </div>
-          <div class="score-center">
-            <div class="score-num">1 - 0</div>
-            <span class="score-time finished">FT</span>
-          </div>
-          <div class="team">
-            <div class="team-logo">⚪</div>
-            <div class="team-name">Real Madrid</div>
-          </div>
-        </div>
-      </div>
-
-      <div class="score-card">
-        <div class="score-league">🇪🇸 La Liga — Espagne</div>
-        <div class="score-match">
-          <div class="team">
-            <div class="team-logo">🔵🔴</div>
-            <div class="team-name">Barcelona</div>
-          </div>
-          <div class="score-center">
-            <div class="score-num">3 - 1</div>
-            <span class="score-time finished">FT</span>
-          </div>
-          <div class="team">
-            <div class="team-logo">🔴⚪</div>
-            <div class="team-name">Atlético</div>
-          </div>
-        </div>
-      </div>
-
-      <div class="score-card">
-        <div class="score-league">🇩🇿 Équipe nationale</div>
-        <div class="score-match">
-          <div class="team">
-            <div class="team-logo">🇩🇿</div>
-            <div class="team-name">Algérie</div>
-          </div>
-          <div class="score-center">
-            <div class="score-num">2 - 1</div>
-            <span class="score-time finished">FT</span>
-          </div>
-          <div class="team">
-            <div class="team-logo">🇹🇳</div>
-            <div class="team-name">Tunisie</div>
-          </div>
-        </div>
-      </div>
-
-      <div class="score-card">
-        <div class="score-league">🏴󠁧󠁢󠁥󠁮󠁧󠁿 Premier League</div>
-        <div class="score-match">
-          <div class="team">
-            <div class="team-logo">🔵</div>
-            <div class="team-name">Man City</div>
-          </div>
-          <div class="score-center">
-            <div class="score-num">21:00</div>
-            <span class="score-time upcoming">À venir</span>
-          </div>
-          <div class="team">
-            <div class="team-logo">🔴</div>
-            <div class="team-name">Liverpool</div>
-          </div>
-        </div>
-      </div>
-
     </div>
   </div>
 </section>
@@ -705,54 +601,9 @@
             <th>Forme</th>
           </tr>
         </thead>
-        <tbody>
-          <tr class="highlight">
-            <td class="rank top">1</td>
-            <td><strong>CR Belouizdad</strong></td>
-            <td>28</td><td>18</td><td>6</td><td>4</td>
-            <td>54:22</td>
-            <td class="pts">60</td>
-            <td><div class="form-dots"><div class="fd fw"></div><div class="fd fw"></div><div class="fd fd2"></div><div class="fd fw"></div><div class="fd fw"></div></div></td>
-          </tr>
+        <tbody id="standings-body">
           <tr>
-            <td class="rank top">2</td>
-            <td><strong>USM Alger</strong></td>
-            <td>28</td><td>16</td><td>7</td><td>5</td>
-            <td>48:28</td>
-            <td class="pts">55</td>
-            <td><div class="form-dots"><div class="fd fw"></div><div class="fd fl"></div><div class="fd fw"></div><div class="fd fw"></div><div class="fd fd2"></div></div></td>
-          </tr>
-          <tr>
-            <td class="rank top">3</td>
-            <td><strong>MC Alger</strong></td>
-            <td>28</td><td>15</td><td>6</td><td>7</td>
-            <td>40:30</td>
-            <td class="pts">51</td>
-            <td><div class="form-dots"><div class="fd fd2"></div><div class="fd fw"></div><div class="fd fw"></div><div class="fd fl"></div><div class="fd fw"></div></div></td>
-          </tr>
-          <tr>
-            <td class="rank">4</td>
-            <td>JS Kabylie</td>
-            <td>28</td><td>13</td><td>8</td><td>7</td>
-            <td>38:29</td>
-            <td class="pts">47</td>
-            <td><div class="form-dots"><div class="fd fw"></div><div class="fd fw"></div><div class="fd fd2"></div><div class="fd fd2"></div><div class="fd fw"></div></div></td>
-          </tr>
-          <tr>
-            <td class="rank">5</td>
-            <td>ES Sétif</td>
-            <td>28</td><td>12</td><td>9</td><td>7</td>
-            <td>35:27</td>
-            <td class="pts">45</td>
-            <td><div class="form-dots"><div class="fd fl"></div><div class="fd fw"></div><div class="fd fw"></div><div class="fd fd2"></div><div class="fd fw"></div></div></td>
-          </tr>
-          <tr>
-            <td class="rank rel">16</td>
-            <td style="color:var(--muted)">ASM Oran</td>
-            <td>28</td><td>5</td><td>6</td><td>17</td>
-            <td>18:48</td>
-            <td class="pts" style="color:var(--red)">21</td>
-            <td><div class="form-dots"><div class="fd fl"></div><div class="fd fl"></div><div class="fd fd2"></div><div class="fd fl"></div><div class="fd fl"></div></div></td>
+            <td colspan="9" style="text-align:center;padding:20px;color:var(--muted)">Chargement du classement...</td>
           </tr>
         </tbody>
       </table>
@@ -862,5 +713,6 @@
   }
   setInterval(updateTime, 30000);
 </script>
+<script src="scores.js"></script>
 </body>
 </html>
