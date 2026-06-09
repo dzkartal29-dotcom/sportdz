@@ -1,21 +1,17 @@
-// ============================================
-// SportDZ — via Netlify Function proxy
-// ============================================
-
+// SportDZ — scores via ESPN + standings via football-data
 const PROXY = '/.netlify/functions/api';
 
-const LEAGUES = [
-  { code: 'PL',  id: 2021, name: 'Premier League',  flag: '🏴󠁧󠁢󠁥󠁮󠁧󠁿' },
-  { code: 'PD',  id: 2014, name: 'La Liga',          flag: '🇪🇸' },
-  { code: 'BL1', id: 2002, name: 'Bundesliga',       flag: '🇩🇪' },
-  { code: 'SA',  id: 2019, name: 'Serie A',          flag: '🇮🇹' },
-  { code: 'FL1', id: 2015, name: 'Ligue 1',          flag: '🇫🇷' },
-  { code: 'PPL', id: 2017, name: 'Primeira Liga',    flag: '🇵🇹' },
-  { code: 'CL',  id: 2001, name: 'Champions League', flag: '🏆' },
+const LEAGUES_FD = [
+  { code:'PL',  name:'Premier League',  flag:'🏴󠁧󠁢󠁥󠁮󠁧󠁿' },
+  { code:'PD',  name:'La Liga',          flag:'🇪🇸' },
+  { code:'BL1', name:'Bundesliga',       flag:'🇩🇪' },
+  { code:'SA',  name:'Serie A',          flag:'🇮🇹' },
+  { code:'FL1', name:'Ligue 1',          flag:'🇫🇷' },
+  { code:'PPL', name:'Primeira Liga',    flag:'🇵🇹' },
 ];
 
-async function api(path) {
-  const res = await fetch(`${PROXY}?path=${encodeURIComponent(path)}`);
+async function api(action, extra='') {
+  const res = await fetch(`${PROXY}?action=${action}${extra}`);
   if (!res.ok) throw new Error(`HTTP ${res.status}`);
   return res.json();
 }
@@ -29,8 +25,8 @@ function fmtDate(d) {
   catch(e){ return ''; }
 }
 function crest(url, size=32) {
-  if (!url) return `<div style="width:${size}px;height:${size}px;background:var(--card2);border-radius:50%;display:flex;align-items:center;justify-content:center">⚽</div>`;
-  return `<img src="${url}" style="width:${size}px;height:${size}px;object-fit:contain" onerror="this.outerHTML='<span>⚽</span>'">`;
+  if (!url) return `<div style="width:${size}px;height:${size}px;background:var(--card2);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:${size*.5}px">⚽</div>`;
+  return `<img src="${url}" style="width:${size}px;height:${size}px;object-fit:contain" onerror="this.outerHTML='<span style=font-size:18px>⚽</span>'">`;
 }
 function stateHTML(icon, fr, ar) {
   const spin = icon==='spinner';
@@ -40,105 +36,108 @@ function stateHTML(icon, fr, ar) {
     ${ar?`<div class="ar" style="font-size:12px;margin-top:4px">${ar}</div>`:''}
   </div>`;
 }
-function statusInfo(status) {
-  if (status==='IN_PLAY') return {label:'🔴 EN DIRECT',cls:'live'};
-  if (status==='PAUSED')  return {label:'⏸ Mi-temps',cls:'live'};
-  if (status==='FINISHED')return {label:'Terminé',cls:'finished'};
-  return {label:'À venir',cls:'upcoming'};
-}
 
-// ── SCORES ────────────────────────────────────────
+// ── SCORES ESPN ───────────────────────────────────
 async function fetchScores() {
   const el = document.getElementById('scores-container');
   if (!el) return;
   el.innerHTML = stateHTML('spinner','Chargement des scores...','جاري تحميل النتائج...');
   try {
-    const today = new Date().toISOString().split('T')[0];
-    const data = await api(`/matches?dateFrom=${today}&dateTo=${today}`);
+    const data = await api('scores');
     const matches = data.matches || [];
-    if (!matches.length) { el.innerHTML = stateHTML('📅','Aucun match aujourd\'hui','لا توجد مباريات اليوم'); return; }
 
-    const order = {IN_PLAY:0,PAUSED:1,TIMED:2,SCHEDULED:2,FINISHED:3};
-    matches.sort((a,b)=>(order[a.status]??4)-(order[b.status]??4));
+    if (!matches.length) {
+      el.innerHTML = stateHTML('📅','Aucun match aujourd\'hui','لا توجد مباريات اليوم');
+      return;
+    }
 
-    el.innerHTML = matches.slice(0,12).map(m => {
-      const st = statusInfo(m.status);
-      const lg = LEAGUES.find(l=>l.id===m.competition?.id);
-      const gh = m.score?.fullTime?.home ?? '-';
-      const ga = m.score?.fullTime?.away ?? '-';
-      const scoreOrTime = st.cls==='upcoming' ? fmtTime(m.utcDate) : `${gh} - ${ga}`;
+    // Trier live → à venir → terminés
+    const order = { STATUS_IN_PROGRESS:0, STATUS_HALFTIME:1, STATUS_SCHEDULED:2, STATUS_FINAL:3 };
+    matches.sort((a,b) => (order[a.status]??2) - (order[b.status]??2));
+
+    el.innerHTML = matches.map(m => {
+      const isLive     = m.status === 'STATUS_IN_PROGRESS' || m.status === 'STATUS_HALFTIME';
+      const isFinished = m.status === 'STATUS_FINAL' || m.status === 'STATUS_FULL_TIME';
+      const isUpcoming = !isLive && !isFinished;
+      const cls = isLive ? 'live' : isFinished ? 'finished' : 'upcoming';
+      const label = isLive ? `🔴 ${m.clock||'LIVE'}` : isFinished ? 'Terminé' : 'À venir';
+      const scoreOrTime = isUpcoming ? fmtTime(m.date) : `${m.homeScore??0} - ${m.awayScore??0}`;
+
       return `
         <div class="score-card animate-in">
-          <div class="score-league">${lg?.flag||'⚽'} ${m.competition?.name||'Football'}</div>
+          <div class="score-league">${m.leagueFlag||'⚽'} ${m.league||'Football'}</div>
           <div class="score-match">
             <div class="team">
-              <div class="team-logo">${crest(m.homeTeam?.crest)}</div>
-              <div class="team-name">${m.homeTeam?.shortName||m.homeTeam?.name}</div>
+              <div class="team-logo">${crest(m.homeLogo)}</div>
+              <div class="team-name">${m.homeShort||m.homeTeam}</div>
             </div>
             <div class="score-center">
               <div class="score-num">${scoreOrTime}</div>
-              <span class="score-time ${st.cls}">${st.label}</span>
-              ${st.cls==='upcoming'?`<div class="match-date">${fmtDate(m.utcDate)}</div>`:''}
+              <span class="score-time ${cls}">${label}</span>
+              ${isUpcoming?`<div class="match-date">${fmtDate(m.date)}</div>`:''}
             </div>
             <div class="team">
-              <div class="team-logo">${crest(m.awayTeam?.crest)}</div>
-              <div class="team-name">${m.awayTeam?.shortName||m.awayTeam?.name}</div>
+              <div class="team-logo">${crest(m.awayLogo)}</div>
+              <div class="team-name">${m.awayShort||m.awayTeam}</div>
             </div>
           </div>
         </div>`;
     }).join('');
+
     updateTicker(matches);
   } catch(e) {
     el.innerHTML = stateHTML('⚠️',`Erreur: ${e.message}`,'');
-    setTimeout(fetchScores,30000);
+    setTimeout(fetchScores, 30000);
   }
 }
 
 // ── PROCHAINS MATCHS ──────────────────────────────
 let upcomingData = {};
 async function fetchUpcoming() {
-  const el=document.getElementById('upcoming-container');
-  const tabsEl=document.getElementById('upcoming-tabs');
-  if(!el||!tabsEl) return;
+  const el = document.getElementById('upcoming-container');
+  const tabsEl = document.getElementById('upcoming-tabs');
+  if (!el||!tabsEl) return;
   try {
-    const from=new Date(); from.setDate(from.getDate()+1);
-    const to=new Date(); to.setDate(to.getDate()+7);
-    const data = await api(`/matches?dateFrom=${from.toISOString().split('T')[0]}&dateTo=${to.toISOString().split('T')[0]}`);
-    const matches = data.matches||[];
-    upcomingData={};
-    matches.forEach(m=>{
-      const cid=m.competition?.id;
-      if(!upcomingData[cid]) upcomingData[cid]=[];
+    const data = await api('upcoming');
+    const matches = data.matches || [];
+    upcomingData = {};
+    matches.forEach(m => {
+      const cid = m.competition?.code;
+      if (!upcomingData[cid]) upcomingData[cid] = [];
       upcomingData[cid].push(m);
     });
-    const avail=LEAGUES.filter(l=>upcomingData[l.id]?.length);
-    if(!avail.length){tabsEl.innerHTML='';el.innerHTML=stateHTML('📅','Aucun match à venir','');return;}
-    tabsEl.innerHTML=avail.map((l,i)=>`
-      <button class="league-tab ${i===0?'active':''}" onclick="switchUpcoming(${l.id},this)">
+    const avail = LEAGUES_FD.filter(l => upcomingData[l.code]?.length);
+    if (!avail.length) {
+      tabsEl.innerHTML = '';
+      el.innerHTML = stateHTML('📅','Aucun match à venir','لا توجد مباريات');
+      return;
+    }
+    tabsEl.innerHTML = avail.map((l,i) => `
+      <button class="league-tab ${i===0?'active':''}" onclick="switchUpcoming('${l.code}',this)">
         ${l.flag} ${l.name}
       </button>`).join('');
-    renderUpcoming(avail[0].id);
+    renderUpcoming(avail[0].code);
     clearInterval(window._upInt);
-    let idx=0;
-    window._upInt=setInterval(()=>{
-      idx=(idx+1)%avail.length;
-      tabsEl.querySelectorAll('.league-tab').forEach(t=>t.classList.remove('active'));
+    let idx = 0;
+    window._upInt = setInterval(() => {
+      idx = (idx+1) % avail.length;
+      tabsEl.querySelectorAll('.league-tab').forEach(t => t.classList.remove('active'));
       tabsEl.querySelectorAll('.league-tab')[idx]?.classList.add('active');
-      renderUpcoming(avail[idx].id);
-    },8000);
-  } catch(e){el.innerHTML=stateHTML('⚠️','Erreur chargement','');}
+      renderUpcoming(avail[idx].code);
+    }, 8000);
+  } catch(e) { el.innerHTML = stateHTML('⚠️','Erreur chargement',''); }
 }
-window.switchUpcoming=function(lid,btn){
+window.switchUpcoming = function(code, btn) {
   clearInterval(window._upInt);
-  document.querySelectorAll('#upcoming-tabs .league-tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('#upcoming-tabs .league-tab').forEach(t => t.classList.remove('active'));
   btn.classList.add('active');
-  renderUpcoming(lid);
+  renderUpcoming(code);
 };
-function renderUpcoming(lid){
-  const el=document.getElementById('upcoming-container');
-  const fixtures=(upcomingData[lid]||[]).slice(0,6);
-  if(!fixtures.length){el.innerHTML=stateHTML('📅','Aucun match','');return;}
-  el.innerHTML=`<div class="upcoming-list">${fixtures.map(m=>`
+function renderUpcoming(code) {
+  const el = document.getElementById('upcoming-container');
+  const fixtures = (upcomingData[code]||[]).slice(0,6);
+  if (!fixtures.length) { el.innerHTML = stateHTML('📅','Aucun match',''); return; }
+  el.innerHTML = `<div class="upcoming-list">${fixtures.map(m => `
     <div class="upcoming-item animate-in">
       <div class="upcoming-date">
         <div class="upd-day">${fmtDate(m.utcDate)}</div>
@@ -153,54 +152,54 @@ function renderUpcoming(lid){
 }
 
 // ── CLASSEMENTS ───────────────────────────────────
-let standingsCache={};
-async function fetchAllStandings(){
-  const tabsEl=document.getElementById('standings-tabs');
-  if(!tabsEl) return;
-  const lg=LEAGUES.filter(l=>l.code!=='CL');
-  tabsEl.innerHTML=lg.map((l,i)=>`
+let standingsCache = {};
+async function fetchAllStandings() {
+  const tabsEl = document.getElementById('standings-tabs');
+  if (!tabsEl) return;
+  tabsEl.innerHTML = LEAGUES_FD.map((l,i) => `
     <button class="league-tab ${i===0?'active':''}" onclick="switchStandings('${l.code}',this)">
       ${l.flag} ${l.name}
     </button>`).join('');
-  await loadStandings(lg[0].code);
+  await loadStandings(LEAGUES_FD[0].code);
   clearInterval(window._stInt);
-  let idx=0;
-  window._stInt=setInterval(async()=>{
-    idx=(idx+1)%lg.length;
-    tabsEl.querySelectorAll('.league-tab').forEach(t=>t.classList.remove('active'));
-    tabsEl.querySelectorAll('.league-tab')[idx]?.classList.add('active');
-    await loadStandings(lg[idx].code);
-  },10000);
+  let idx = 0;
+  window._stInt = setInterval(async () => {
+    idx = (idx+1) % LEAGUES_FD.length;
+    const tabs = tabsEl.querySelectorAll('.league-tab');
+    tabs.forEach(t => t.classList.remove('active'));
+    tabs[idx]?.classList.add('active');
+    await loadStandings(LEAGUES_FD[idx].code);
+  }, 10000);
 }
-window.switchStandings=async function(code,btn){
+window.switchStandings = async function(code, btn) {
   clearInterval(window._stInt);
-  document.querySelectorAll('#standings-tabs .league-tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('#standings-tabs .league-tab').forEach(t => t.classList.remove('active'));
   btn.classList.add('active');
   await loadStandings(code);
 };
-async function loadStandings(code){
-  const tbody=document.getElementById('standings-body');
-  if(!tbody) return;
-  if(standingsCache[code]){renderStandings(standingsCache[code]);return;}
-  tbody.innerHTML=`<tr><td colspan="9" style="text-align:center;padding:24px"><div class="spinner" style="margin:0 auto;width:28px;height:28px;border-width:2px"></div></td></tr>`;
+async function loadStandings(code) {
+  const tbody = document.getElementById('standings-body');
+  if (!tbody) return;
+  if (standingsCache[code]) { renderStandings(standingsCache[code]); return; }
+  tbody.innerHTML = `<tr><td colspan="9" style="text-align:center;padding:24px"><div class="spinner" style="margin:0 auto;width:28px;height:28px;border-width:2px"></div></td></tr>`;
   try {
-    const data=await api(`/competitions/${code}/standings`);
-    const table=data.standings?.find(s=>s.type==='TOTAL')?.table||[];
-    if(!table.length) throw new Error('Pas de données');
-    standingsCache[code]=table;
+    const data = await api('standings', `&code=${code}`);
+    const table = data.standings?.find(s => s.type==='TOTAL')?.table || [];
+    if (!table.length) throw new Error('Données indisponibles');
+    standingsCache[code] = table;
     renderStandings(table);
-  } catch(e){
-    tbody.innerHTML=`<tr><td colspan="9" style="text-align:center;padding:20px;color:var(--red)">${e.message}</td></tr>`;
+  } catch(e) {
+    tbody.innerHTML = `<tr><td colspan="9" style="text-align:center;padding:20px;color:var(--red)">${e.message}</td></tr>`;
   }
 }
-function renderStandings(table){
-  const tbody=document.getElementById('standings-body');
-  const top3El=document.getElementById('top-scorers-container');
-  if(!tbody) return;
-  const total=table.length;
-  tbody.innerHTML=table.slice(0,10).map(t=>{
-    const rankCls=t.position<=3?'top':t.position>=total-2?'rel':'';
-    const form=(t.form||'').split(',').slice(-5).map(f=>
+function renderStandings(table) {
+  const tbody = document.getElementById('standings-body');
+  const top3El = document.getElementById('top-scorers-container');
+  if (!tbody) return;
+  const total = table.length;
+  tbody.innerHTML = table.slice(0,10).map(t => {
+    const rankCls = t.position<=3?'top':t.position>=total-2?'rel':'';
+    const form = (t.form||'').split(',').slice(-5).map(f =>
       f==='W'?'<div class="fd fw"></div>':f==='D'?'<div class="fd fd2"></div>':'<div class="fd fl"></div>'
     ).join('');
     return `
@@ -213,12 +212,12 @@ function renderStandings(table){
         <td><div class="form-dots">${form}</div></td>
       </tr>`;
   }).join('');
-  if(top3El&&table.length>=3){
-    const topAtk=[...table].sort((a,b)=>b.goalsFor-a.goalsFor).slice(0,3);
-    const topDef=[...table].sort((a,b)=>a.goalsAgainst-b.goalsAgainst).slice(0,3);
-    top3El.innerHTML=`
+  if (top3El && table.length >= 3) {
+    const topAtk = [...table].sort((a,b) => b.goalsFor-a.goalsFor).slice(0,3);
+    const topDef = [...table].sort((a,b) => a.goalsAgainst-b.goalsAgainst).slice(0,3);
+    top3El.innerHTML = `
       <div class="top3-title">⚽ Top 3 Meilleures Attaques</div>
-      ${topAtk.map((t,i)=>`
+      ${topAtk.map((t,i) => `
         <div class="top3-item animate-in">
           <div class="top3-rank">${['🥇','🥈','🥉'][i]}</div>
           ${crest(t.team?.crest,28)}
@@ -226,7 +225,7 @@ function renderStandings(table){
           <div class="top3-num">${t.goalsFor}</div>
         </div>`).join('')}
       <div class="top3-title" style="margin-top:14px">🛡️ Top 3 Meilleures Défenses</div>
-      ${topDef.map((t,i)=>`
+      ${topDef.map((t,i) => `
         <div class="top3-item animate-in">
           <div class="top3-rank">${['🥇','🥈','🥉'][i]}</div>
           ${crest(t.team?.crest,28)}
@@ -237,23 +236,23 @@ function renderStandings(table){
 }
 
 // ── ARTICLES ──────────────────────────────────────
-async function fetchArticles(){
-  const el=document.getElementById('articles-container');
-  if(!el) return;
+async function fetchArticles() {
+  const el = document.getElementById('articles-container');
+  if (!el) return;
   try {
-    const yesterday=new Date(); yesterday.setDate(yesterday.getDate()-1);
-    const d=yesterday.toISOString().split('T')[0];
-    const data=await api(`/matches?dateFrom=${d}&dateTo=${d}&status=FINISHED`);
-    const matches=(data.matches||[]).slice(0,4);
-    if(!matches.length) return;
-    const cats=['Résultats','Analyse','Ligue 1','Champions'];
-    const icons=['⚽','🏆','🎯','📊'];
-    el.innerHTML=matches.map((m,i)=>{
-      const gh=m.score?.fullTime?.home??0;
-      const ga=m.score?.fullTime?.away??0;
-      const score=`${gh} - ${ga}`;
-      const winner=gh>ga?m.homeTeam?.name:ga>gh?m.awayTeam?.name:null;
-      const title=winner?`${winner} s'impose (${score})`:`Match nul (${score}) — ${m.homeTeam?.name} vs ${m.awayTeam?.name}`;
+    const data = await api('articles');
+    const matches = (data.matches||[]).slice(0,4);
+    if (!matches.length) return;
+    const cats = ['Résultats','Analyse','Ligue 1','Champions'];
+    const icons = ['⚽','🏆','🎯','📊'];
+    el.innerHTML = matches.map((m,i) => {
+      const gh = m.score?.fullTime?.home ?? 0;
+      const ga = m.score?.fullTime?.away ?? 0;
+      const score = `${gh} - ${ga}`;
+      const winner = gh>ga ? m.homeTeam?.name : ga>gh ? m.awayTeam?.name : null;
+      const title = winner
+        ? `${winner} s'impose (${score}) contre ${gh>ga?m.awayTeam?.name:m.homeTeam?.name}`
+        : `Match nul (${score}) — ${m.homeTeam?.name} vs ${m.awayTeam?.name}`;
       return `
         <div class="article-card animate-in">
           <div class="article-img">
@@ -267,27 +266,26 @@ async function fetchArticles(){
           </div>
         </div>`;
     }).join('');
-  } catch(e){ console.error('Articles:',e); }
+  } catch(e) { console.error('Articles:',e); }
 }
 
 // ── TICKER ────────────────────────────────────────
-function updateTicker(matches){
-  const ticker=document.getElementById('ticker');
-  if(!ticker||!matches.length) return;
-  const items=matches.slice(0,10).map(m=>{
-    const gh=m.score?.fullTime?.home;
-    const score=(gh!==null&&gh!==undefined)?`${gh} - ${m.score?.fullTime?.away}`:fmtTime(m.utcDate);
-    return `<span class="ticker-item">${m.homeTeam?.shortName||m.homeTeam?.name} — ${m.awayTeam?.shortName||m.awayTeam?.name} <span class="ticker-score">${score}</span></span>`;
+function updateTicker(matches) {
+  const ticker = document.getElementById('ticker');
+  if (!ticker||!matches.length) return;
+  const items = matches.slice(0,10).map(m => {
+    const score = (m.homeScore!==null&&m.homeScore!==undefined) ? `${m.homeScore} - ${m.awayScore}` : fmtTime(m.date);
+    return `<span class="ticker-item">${m.homeShort||m.homeTeam} — ${m.awayShort||m.awayTeam} <span class="ticker-score">${score}</span></span>`;
   });
-  ticker.innerHTML=[...items,...items].join('');
+  ticker.innerHTML = [...items,...items].join('');
 }
 
 // ── INIT ──────────────────────────────────────────
-document.addEventListener('DOMContentLoaded',()=>{
+document.addEventListener('DOMContentLoaded', () => {
   fetchScores();
   fetchUpcoming();
   fetchAllStandings();
   fetchArticles();
-  setInterval(fetchScores,60000);
-  setInterval(fetchUpcoming,300000);
+  setInterval(fetchScores, 60000);
+  setInterval(fetchUpcoming, 300000);
 });
