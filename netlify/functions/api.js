@@ -1,9 +1,6 @@
-// Netlify Function — proxy multi-API
-// ESPN (public) + football-data fallback
+// Netlify Function — proxy multi-API 100% ESPN (Sans blocage CORS)
 
 const ESPN_BASE = 'https://site.api.espn.com/apis/site/v2/sports/soccer';
-const FD_TOKEN  = '529336eaf4c8420c95e3dd14bad54d40';
-const FD_BASE   = 'https://api.football-data.org/v4';
 
 const CORS = {
   'Content-Type': 'application/json',
@@ -11,14 +8,15 @@ const CORS = {
   'Access-Control-Allow-Headers': '*'
 };
 
-// Mapping ESPN league slugs
+// Répertoire des ligues supportées par ESPN
 const ESPN_LEAGUES = [
-  { slug: 'eng.1',   id: 2021, name: 'Premier League',  flag: '🏴󠁧󠁢󠁥󠁮󠁧󠁿' },
-  { slug: 'esp.1',   id: 2014, name: 'La Liga',          flag: '🇪🇸' },
-  { slug: 'ger.1',   id: 2002, name: 'Bundesliga',       flag: '🇩🇪' },
-  { slug: 'ita.1',   id: 2019, name: 'Serie A',          flag: '🇮🇹' },
-  { slug: 'fra.1',   id: 2015, name: 'Ligue 1',          flag: '🇫🇷' },
-  { slug: 'uefa.champions', id: 2001, name: 'Champions League', flag: '🏆' },
+  { slug: 'fifa.world',       name: 'Coupe du Monde',      flag: '🏆' },
+  { slug: 'eng.1',            name: 'Premier League',      flag: '🏴' },
+  { slug: 'esp.1',            name: 'La Liga',             flag: '🇪🇸' },
+  { slug: 'ger.1',            name: 'Bundesliga',          flag: '🇩🇪' },
+  { slug: 'ita.1',            name: 'Serie A',             flag: '🇮🇹' },
+  { slug: 'fra.1',            name: 'Ligue 1',             flag: '🇫🇷' },
+  { slug: 'uefa.champions',   name: 'Champions League',    flag: '⭐' }
 ];
 
 exports.handler = async (event) => {
@@ -32,14 +30,15 @@ exports.handler = async (event) => {
     let result;
 
     if (action === 'scores') {
-      result = await fetchScoresESPN();
+      result = await fetchESPNData('scores');
     } else if (action === 'upcoming') {
-      result = await fetchUpcomingFD();
+      result = await fetchESPNData('upcoming');
     } else if (action === 'standings') {
-      const code = event.queryStringParameters?.code || 'PL';
-      result = await fetchStandingsFD(code);
+      // Pour les classements, on utilise l'API de stats d'ESPN
+      const league = event.queryStringParameters?.code || 'eng.1';
+      result = await fetchStandingsESPN(league);
     } else if (action === 'articles') {
-      result = await fetchArticlesFD();
+      result = await fetchArticlesESPN();
     } else {
       result = { error: 'Unknown action' };
     }
@@ -58,13 +57,13 @@ exports.handler = async (event) => {
   }
 };
 
-// ── SCORES via ESPN ───────────────────────────────
-async function fetchScoresESPN() {
+// ── FONCTION PRINCIPALE MATCHS (SCORES & UPCOMING) ─────────────────
+async function fetchESPNData(type) {
   const allMatches = [];
 
   await Promise.allSettled(ESPN_LEAGUES.map(async (lg) => {
     try {
-      const res = await fetch(`${ESPN_BASE}/${lg.slug}/scoreboard`);
+      const res = await fetch(`${ESPN_BASE}/${lg.slug}/scoreboard?limit=50`);
       const data = await res.json();
       const events = data.events || [];
 
@@ -73,11 +72,11 @@ async function fetchScoresESPN() {
         if (!comp) return;
         const home = comp.competitors?.find(t => t.homeAway === 'home');
         const away = comp.competitors?.find(t => t.homeAway === 'away');
-        const status = comp.status?.type?.name;
+        const statusState = comp.status?.type?.state; // 'pre', 'in', ou 'post'
+        const statusName = comp.status?.type?.name;
         const clock  = comp.status?.displayClock;
-        const period = comp.status?.period;
 
-        allMatches.push({
+        const matchData = {
           id: e.id,
           league: lg.name,
           leagueFlag: lg.flag,
@@ -89,44 +88,69 @@ async function fetchScoresESPN() {
           awayLogo: away?.team?.logo || '',
           homeScore: home?.score ?? null,
           awayScore: away?.score ?? null,
-          status: status,
+          status: statusName,
           clock: clock,
           date: e.date,
-        });
+        };
+
+        // Filtrage propre selon la section demandée
+        if (type === 'scores' && (statusState === 'in' || statusState === 'post')) {
+          allMatches.push(matchData);
+        } else if (type === 'upcoming' && statusState === 'pre') {
+          allMatches.push(matchData);
+        }
       });
     } catch(err) {}
   }));
 
-  return { matches: allMatches };
+  // Format compatible avec le script frontend existant de Claude
+  return type === 'scores' ? { matches: allMatches } : { matches: allMatches };
 }
 
-// ── UPCOMING via football-data ────────────────────
-async function fetchUpcomingFD() {
-  const from = new Date(); from.setDate(from.getDate() + 1);
-  const to   = new Date(); to.setDate(to.getDate() + 7);
-  const f1 = from.toISOString().split('T')[0];
-  const t1 = to.toISOString().split('T')[0];
+// ── STANDINGS via ESPN ─────────────────────────────────────────────
+async function fetchStandingsESPN(leagueSlug) {
+  try {
+    // Si le code reçu est un ancien code FD (ex: PL, FL1), on le convertit au format ESPN
+    let slug = leagueSlug;
+    if (slug === 'PL') slug = 'eng.1';
+    if (slug === 'FL1') slug = 'fra.1';
+    if (slug === 'BL1') slug = 'ger.1';
+    if (slug === 'SA') slug = 'ita.1';
+    if (slug === 'PD') slug = 'esp.1';
 
-  const res = await fetch(`${FD_BASE}/matches?dateFrom=${f1}&dateTo=${t1}`, {
-    headers: { 'X-Auth-Token': FD_TOKEN }
-  });
-  return res.json();
+    const res = await fetch(`${ESPN_BASE}/${slug}/standings`);
+    return await res.json();
+  } catch (e) {
+    return { error: 'Impossible de charger le classement' };
+  }
 }
 
-// ── STANDINGS via football-data ───────────────────
-async function fetchStandingsFD(code) {
-  const res = await fetch(`${FD_BASE}/competitions/${code}/standings`, {
-    headers: { 'X-Auth-Token': FD_TOKEN }
-  });
-  return res.json();
-}
+// ── ARTICLES (Simulation d'actualités basées sur les derniers matchs) ──
+async function fetchArticlesESPN() {
+  try {
+    const res = await fetch(`${ESPN_BASE}/eng.1/scoreboard`);
+    const data = await res.json();
+    const events = data.events || [];
+    
+    // On prend les derniers matchs terminés pour simuler des actus de façon dynamique
+    const finished = events.filter(e => e.competitions?.[0]?.status?.type?.state === 'post').slice(0, 5);
+    
+    const articles = finished.map(m => {
+      const comp = m.competitions[0];
+      const home = comp.competitors.find(t => t.homeAway === 'home')?.team?.displayName;
+      const away = comp.competitors.find(t => t.homeAway === 'away')?.team?.displayName;
+      const hScore = comp.competitors.find(t => t.homeAway === 'home')?.score;
+      const aScore = comp.competitors.find(t => t.homeAway === 'away')?.score;
 
-// ── ARTICLES via football-data ────────────────────
-async function fetchArticlesFD() {
-  const yesterday = new Date(); yesterday.setDate(yesterday.getDate() - 1);
-  const d = yesterday.toISOString().split('T')[0];
-  const res = await fetch(`${FD_BASE}/matches?dateFrom=${d}&dateTo=${d}&status=FINISHED`, {
-    headers: { 'X-Auth-Token': FD_TOKEN }
-  });
-  return res.json();
+      return {
+        title: `Débrief : ${home} vs ${away} (${hScore}-${aScore})`,
+        summary: `Retour sur la confrontation intense entre le ${home} et le ${away}. Les statistiques complètes et les faits marquants du match sont désormais disponibles sur SportDZ.`,
+        date: m.date
+      };
+    });
+
+    return { articles: articles.length > 0 ? articles : [{ title: "SportDZ : Toute l'actualité en direct", summary: "Suivez les dernières compétitions internationales et restez connectés pour les classements mis à jour.", date: new Date() }] };
+  } catch(e) {
+    return { articles: [] };
+  }
 }
