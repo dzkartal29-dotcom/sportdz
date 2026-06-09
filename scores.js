@@ -1,4 +1,4 @@
-// SportDZ — scores via ESPN + standings via football-data
+// SportDZ — Scores + Upcoming organisés par championnat
 const PROXY = '/.netlify/functions/api';
 
 const LEAGUES_FD = [
@@ -9,6 +9,16 @@ const LEAGUES_FD = [
   { code:'FL1', name:'Ligue 1',          flag:'🇫🇷' },
   { code:'PPL', name:'Primeira Liga',    flag:'🇵🇹' },
 ];
+
+// ESPN slug → league name mapping
+const ESPN_LEAGUE_MAP = {
+  'eng.1':          { name:'Premier League',  flag:'🏴󠁧󠁢󠁥󠁮󠁧󠁿' },
+  'esp.1':          { name:'La Liga',          flag:'🇪🇸' },
+  'ger.1':          { name:'Bundesliga',       flag:'🇩🇪' },
+  'ita.1':          { name:'Serie A',          flag:'🇮🇹' },
+  'fra.1':          { name:'Ligue 1',          flag:'🇫🇷' },
+  'uefa.champions': { name:'Champions League', flag:'🏆' },
+};
 
 async function api(action, extra='') {
   const res = await fetch(`${PROXY}?action=${action}${extra}`);
@@ -25,98 +35,180 @@ function fmtDate(d) {
   catch(e){ return ''; }
 }
 function crest(url, size=32) {
-  if (!url) return `<div style="width:${size}px;height:${size}px;background:var(--card2);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:${size*.5}px">⚽</div>`;
+  if (!url) return `<div style="width:${size}px;height:${size}px;background:var(--card2);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:${Math.round(size*.5)}px">⚽</div>`;
   return `<img src="${url}" style="width:${size}px;height:${size}px;object-fit:contain" onerror="this.outerHTML='<span style=font-size:18px>⚽</span>'">`;
 }
 function stateHTML(icon, fr, ar) {
   const spin = icon==='spinner';
-  return `<div style="grid-column:1/-1;text-align:center;padding:48px 24px;color:var(--muted)">
-    ${spin?'<div class="spinner" style="margin:0 auto 14px;width:32px;height:32px;border-width:3px"></div>':`<div style="font-size:40px;margin-bottom:12px">${icon}</div>`}
-    <div style="font-size:14px">${fr}</div>
+  return `<div style="grid-column:1/-1;text-align:center;padding:40px 24px;color:var(--muted)">
+    ${spin?'<div class="spinner" style="margin:0 auto 14px;width:32px;height:32px;border-width:3px"></div>':`<div style="font-size:36px;margin-bottom:10px">${icon}</div>`}
+    <div style="font-size:13px">${fr}</div>
     ${ar?`<div class="ar" style="font-size:12px;margin-top:4px">${ar}</div>`:''}
   </div>`;
 }
 
-// ── SCORES ESPN ───────────────────────────────────
+// ── SCORES DU JOUR — organisés par championnat ────
+let scoresData = {}; // { leagueName: [matches] }
+
 async function fetchScores() {
-  const el = document.getElementById('scores-container');
+  const el     = document.getElementById('scores-container');
+  const tabsEl = document.getElementById('scores-tabs');
   if (!el) return;
   el.innerHTML = stateHTML('spinner','Chargement des scores...','جاري تحميل النتائج...');
+
   try {
     const data = await api('scores');
-    const matches = data.matches || [];
+    const allMatches = data.matches || [];
 
-    if (!matches.length) {
+    // Séparer FINISHED/IN_PLAY des UPCOMING
+    const todayMatches = allMatches.filter(m =>
+      m.status === 'STATUS_FINAL' ||
+      m.status === 'STATUS_FULL_TIME' ||
+      m.status === 'STATUS_IN_PROGRESS' ||
+      m.status === 'STATUS_HALFTIME'
+    );
+    const upcomingToday = allMatches.filter(m =>
+      m.status === 'STATUS_SCHEDULED' ||
+      m.status === 'STATUS_TIMED' ||
+      m.status === 'STATUS_POSTPONED'
+    );
+
+    // Grouper par ligue
+    scoresData = {};
+    todayMatches.forEach(m => {
+      const k = m.league || 'Autres';
+      if (!scoresData[k]) scoresData[k] = [];
+      scoresData[k].push(m);
+    });
+
+    // Si aucun résultat terminé → montrer les matchs à venir du jour
+    if (!Object.keys(scoresData).length && upcomingToday.length) {
+      upcomingToday.forEach(m => {
+        const k = m.league || 'Autres';
+        if (!scoresData[k]) scoresData[k] = [];
+        scoresData[k].push(m);
+      });
+    }
+
+    const leagues = Object.keys(scoresData);
+    if (!leagues.length) {
+      if (tabsEl) tabsEl.innerHTML = '';
       el.innerHTML = stateHTML('📅','Aucun match aujourd\'hui','لا توجد مباريات اليوم');
       return;
     }
 
-    // Trier live → à venir → terminés
-    const order = { STATUS_IN_PROGRESS:0, STATUS_HALFTIME:1, STATUS_SCHEDULED:2, STATUS_FINAL:3 };
-    matches.sort((a,b) => (order[a.status]??2) - (order[b.status]??2));
+    // Construire les tabs
+    if (tabsEl) {
+      tabsEl.innerHTML = leagues.map((lg, i) => {
+        const info = Object.values(ESPN_LEAGUE_MAP).find(l => l.name === lg);
+        return `<button class="league-tab ${i===0?'active':''}" onclick="switchScores('${lg.replace(/'/g,"\\'")}',this)">
+          ${info?.flag||'⚽'} ${lg}
+        </button>`;
+      }).join('');
+    }
 
-    el.innerHTML = matches.map(m => {
-      const isLive     = m.status === 'STATUS_IN_PROGRESS' || m.status === 'STATUS_HALFTIME';
-      const isFinished = m.status === 'STATUS_FINAL' || m.status === 'STATUS_FULL_TIME';
-      const isUpcoming = !isLive && !isFinished;
-      const cls = isLive ? 'live' : isFinished ? 'finished' : 'upcoming';
-      const label = isLive ? `🔴 ${m.clock||'LIVE'}` : isFinished ? 'Terminé' : 'À venir';
-      const scoreOrTime = isUpcoming ? fmtTime(m.date) : `${m.homeScore??0} - ${m.awayScore??0}`;
+    renderScores(leagues[0]);
 
-      return `
-        <div class="score-card animate-in">
-          <div class="score-league">${m.leagueFlag||'⚽'} ${m.league||'Football'}</div>
-          <div class="score-match">
-            <div class="team">
-              <div class="team-logo">${crest(m.homeLogo)}</div>
-              <div class="team-name">${m.homeShort||m.homeTeam}</div>
-            </div>
-            <div class="score-center">
-              <div class="score-num">${scoreOrTime}</div>
-              <span class="score-time ${cls}">${label}</span>
-              ${isUpcoming?`<div class="match-date">${fmtDate(m.date)}</div>`:''}
-            </div>
-            <div class="team">
-              <div class="team-logo">${crest(m.awayLogo)}</div>
-              <div class="team-name">${m.awayShort||m.awayTeam}</div>
-            </div>
-          </div>
-        </div>`;
-    }).join('');
+    // Auto-rotate toutes les 7 secondes
+    clearInterval(window._scInt);
+    let idx = 0;
+    window._scInt = setInterval(() => {
+      idx = (idx+1) % leagues.length;
+      if (tabsEl) {
+        tabsEl.querySelectorAll('.league-tab').forEach(t => t.classList.remove('active'));
+        tabsEl.querySelectorAll('.league-tab')[idx]?.classList.add('active');
+      }
+      renderScores(leagues[idx]);
+    }, 7000);
 
-    updateTicker(matches);
+    updateTicker(allMatches);
   } catch(e) {
+    console.error('Scores:', e);
     el.innerHTML = stateHTML('⚠️',`Erreur: ${e.message}`,'');
     setTimeout(fetchScores, 30000);
   }
 }
 
-// ── PROCHAINS MATCHS ──────────────────────────────
+window.switchScores = function(league, btn) {
+  clearInterval(window._scInt);
+  document.querySelectorAll('#scores-tabs .league-tab').forEach(t => t.classList.remove('active'));
+  btn.classList.add('active');
+  renderScores(league);
+};
+
+function renderScores(league) {
+  const el = document.getElementById('scores-container');
+  const matches = scoresData[league] || [];
+  if (!matches.length) { el.innerHTML = stateHTML('📅','Aucun match',''); return; }
+
+  const order = { STATUS_IN_PROGRESS:0, STATUS_HALFTIME:1, STATUS_SCHEDULED:2, STATUS_TIMED:2, STATUS_FINAL:3 };
+  matches.sort((a,b) => (order[a.status]??2) - (order[b.status]??2));
+
+  el.innerHTML = `<div class="grid-3">${matches.map(m => {
+    const isLive     = m.status==='STATUS_IN_PROGRESS' || m.status==='STATUS_HALFTIME';
+    const isFinished = m.status==='STATUS_FINAL' || m.status==='STATUS_FULL_TIME';
+    const isUpcoming = !isLive && !isFinished;
+    const cls   = isLive?'live':isFinished?'finished':'upcoming';
+    const label = isLive?`🔴 ${m.clock||'LIVE'}`:isFinished?'Terminé':'À venir';
+    const scoreOrTime = isUpcoming ? fmtTime(m.date) : `${m.homeScore??0} - ${m.awayScore??0}`;
+
+    return `
+      <div class="score-card animate-in">
+        <div class="score-league">${m.leagueFlag||'⚽'} ${m.league||'Football'}</div>
+        <div class="score-match">
+          <div class="team">
+            <div class="team-logo">${crest(m.homeLogo)}</div>
+            <div class="team-name">${m.homeShort||m.homeTeam}</div>
+          </div>
+          <div class="score-center">
+            <div class="score-num">${scoreOrTime}</div>
+            <span class="score-time ${cls}">${label}</span>
+            ${isUpcoming?`<div class="match-date">${fmtDate(m.date)}</div>`:''}
+          </div>
+          <div class="team">
+            <div class="team-logo">${crest(m.awayLogo)}</div>
+            <div class="team-name">${m.awayShort||m.awayTeam}</div>
+          </div>
+        </div>
+      </div>`;
+  }).join('')}</div>`;
+}
+
+// ── PROCHAINS MATCHS — organisés par championnat ──
 let upcomingData = {};
+
 async function fetchUpcoming() {
-  const el = document.getElementById('upcoming-container');
+  const el     = document.getElementById('upcoming-container');
   const tabsEl = document.getElementById('upcoming-tabs');
   if (!el||!tabsEl) return;
+  el.innerHTML = stateHTML('spinner','Chargement des prochains matchs...','');
+
   try {
     const data = await api('upcoming');
     const matches = data.matches || [];
+
     upcomingData = {};
     matches.forEach(m => {
-      const cid = m.competition?.code;
-      if (!upcomingData[cid]) upcomingData[cid] = [];
-      upcomingData[cid].push(m);
+      const code = m.competition?.code;
+      if (!code) return;
+      if (!upcomingData[code]) upcomingData[code] = [];
+      upcomingData[code].push(m);
     });
+
     const avail = LEAGUES_FD.filter(l => upcomingData[l.code]?.length);
     if (!avail.length) {
       tabsEl.innerHTML = '';
-      el.innerHTML = stateHTML('📅','Aucun match à venir','لا توجد مباريات');
+      el.innerHTML = stateHTML('📅','Aucun match à venir','لا توجد مباريات قادمة');
       return;
     }
+
     tabsEl.innerHTML = avail.map((l,i) => `
       <button class="league-tab ${i===0?'active':''}" onclick="switchUpcoming('${l.code}',this)">
         ${l.flag} ${l.name}
       </button>`).join('');
+
     renderUpcoming(avail[0].code);
+
     clearInterval(window._upInt);
     let idx = 0;
     window._upInt = setInterval(() => {
@@ -125,18 +217,23 @@ async function fetchUpcoming() {
       tabsEl.querySelectorAll('.league-tab')[idx]?.classList.add('active');
       renderUpcoming(avail[idx].code);
     }, 8000);
-  } catch(e) { el.innerHTML = stateHTML('⚠️','Erreur chargement',''); }
+  } catch(e) {
+    el.innerHTML = stateHTML('⚠️','Erreur chargement','');
+  }
 }
+
 window.switchUpcoming = function(code, btn) {
   clearInterval(window._upInt);
   document.querySelectorAll('#upcoming-tabs .league-tab').forEach(t => t.classList.remove('active'));
   btn.classList.add('active');
   renderUpcoming(code);
 };
+
 function renderUpcoming(code) {
   const el = document.getElementById('upcoming-container');
   const fixtures = (upcomingData[code]||[]).slice(0,6);
   if (!fixtures.length) { el.innerHTML = stateHTML('📅','Aucun match',''); return; }
+
   el.innerHTML = `<div class="upcoming-list">${fixtures.map(m => `
     <div class="upcoming-item animate-in">
       <div class="upcoming-date">
@@ -144,15 +241,16 @@ function renderUpcoming(code) {
         <div class="upd-time">⏰ ${fmtTime(m.utcDate)}</div>
       </div>
       <div class="upcoming-match">
-        <div class="upm-team">${crest(m.homeTeam?.crest,26)}<span>${m.homeTeam?.shortName||m.homeTeam?.name}</span></div>
+        <div class="upm-team">${crest(m.homeTeam?.crest,26)}<span>${m.homeTeam?.shortName||m.homeTeam?.name||'?'}</span></div>
         <div class="upm-vs">VS</div>
-        <div class="upm-team right"><span>${m.awayTeam?.shortName||m.awayTeam?.name}</span>${crest(m.awayTeam?.crest,26)}</div>
+        <div class="upm-team right"><span>${m.awayTeam?.shortName||m.awayTeam?.name||'?'}</span>${crest(m.awayTeam?.crest,26)}</div>
       </div>
     </div>`).join('')}</div>`;
 }
 
 // ── CLASSEMENTS ───────────────────────────────────
 let standingsCache = {};
+
 async function fetchAllStandings() {
   const tabsEl = document.getElementById('standings-tabs');
   if (!tabsEl) return;
@@ -171,17 +269,21 @@ async function fetchAllStandings() {
     await loadStandings(LEAGUES_FD[idx].code);
   }, 10000);
 }
+
 window.switchStandings = async function(code, btn) {
   clearInterval(window._stInt);
   document.querySelectorAll('#standings-tabs .league-tab').forEach(t => t.classList.remove('active'));
   btn.classList.add('active');
   await loadStandings(code);
 };
+
 async function loadStandings(code) {
   const tbody = document.getElementById('standings-body');
   if (!tbody) return;
   if (standingsCache[code]) { renderStandings(standingsCache[code]); return; }
-  tbody.innerHTML = `<tr><td colspan="9" style="text-align:center;padding:24px"><div class="spinner" style="margin:0 auto;width:28px;height:28px;border-width:2px"></div></td></tr>`;
+  tbody.innerHTML = `<tr><td colspan="9" style="text-align:center;padding:24px">
+    <div class="spinner" style="margin:0 auto;width:28px;height:28px;border-width:2px"></div>
+  </td></tr>`;
   try {
     const data = await api('standings', `&code=${code}`);
     const table = data.standings?.find(s => s.type==='TOTAL')?.table || [];
@@ -192,6 +294,7 @@ async function loadStandings(code) {
     tbody.innerHTML = `<tr><td colspan="9" style="text-align:center;padding:20px;color:var(--red)">${e.message}</td></tr>`;
   }
 }
+
 function renderStandings(table) {
   const tbody = document.getElementById('standings-body');
   const top3El = document.getElementById('top-scorers-container');
@@ -212,6 +315,7 @@ function renderStandings(table) {
         <td><div class="form-dots">${form}</div></td>
       </tr>`;
   }).join('');
+
   if (top3El && table.length >= 3) {
     const topAtk = [...table].sort((a,b) => b.goalsFor-a.goalsFor).slice(0,3);
     const topDef = [...table].sort((a,b) => a.goalsAgainst-b.goalsAgainst).slice(0,3);
@@ -243,13 +347,13 @@ async function fetchArticles() {
     const data = await api('articles');
     const matches = (data.matches||[]).slice(0,4);
     if (!matches.length) return;
-    const cats = ['Résultats','Analyse','Ligue 1','Champions'];
+    const cats  = ['Résultats','Analyse','Ligue 1','Champions'];
     const icons = ['⚽','🏆','🎯','📊'];
     el.innerHTML = matches.map((m,i) => {
       const gh = m.score?.fullTime?.home ?? 0;
       const ga = m.score?.fullTime?.away ?? 0;
       const score = `${gh} - ${ga}`;
-      const winner = gh>ga ? m.homeTeam?.name : ga>gh ? m.awayTeam?.name : null;
+      const winner = gh>ga?m.homeTeam?.name:ga>gh?m.awayTeam?.name:null;
       const title = winner
         ? `${winner} s'impose (${score}) contre ${gh>ga?m.awayTeam?.name:m.homeTeam?.name}`
         : `Match nul (${score}) — ${m.homeTeam?.name} vs ${m.awayTeam?.name}`;
@@ -274,7 +378,9 @@ function updateTicker(matches) {
   const ticker = document.getElementById('ticker');
   if (!ticker||!matches.length) return;
   const items = matches.slice(0,10).map(m => {
-    const score = (m.homeScore!==null&&m.homeScore!==undefined) ? `${m.homeScore} - ${m.awayScore}` : fmtTime(m.date);
+    const score = (m.homeScore!==null&&m.homeScore!==undefined)
+      ? `${m.homeScore} - ${m.awayScore}`
+      : fmtTime(m.date);
     return `<span class="ticker-item">${m.homeShort||m.homeTeam} — ${m.awayShort||m.awayTeam} <span class="ticker-score">${score}</span></span>`;
   });
   ticker.innerHTML = [...items,...items].join('');
@@ -286,6 +392,6 @@ document.addEventListener('DOMContentLoaded', () => {
   fetchUpcoming();
   fetchAllStandings();
   fetchArticles();
-  setInterval(fetchScores, 60000);
+  setInterval(fetchScores,   60000);
   setInterval(fetchUpcoming, 300000);
 });
