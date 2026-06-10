@@ -3,282 +3,789 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>SportDZ — أخبار الرياضة الجزائرية</title>
-<meta name="description" content="SportDZ - Scores, résultats et actualités sportives en direct">
-<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Cairo:wght@400;600;700&family=Barlow:wght@400;500;600;700&display=swap" rel="stylesheet">
+<title>SportDZ — Coupe du Monde 2026 | كأس العالم 2026</title>
+<meta name="description" content="SportDZ - Scores, résultats et actualités de la Coupe du Monde 2026 en direct | نتائج كأس العالم 2026 مباشرة">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Cairo:wght@400;600;700;900&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
+/* ── TOKENS ───────────────────────────────────── */
 :root {
-  --green:#00C851; --green-dark:#007A32; --green-glow:rgba(0,200,81,0.12);
-  --black:#080808; --dark:#0f0f0f; --card:#151515; --card2:#1a1a1a;
-  --border:rgba(255,255,255,0.07); --text:#F2F2F2; --muted:#777;
-  --red:#FF3B3B; --gold:#FFD700; --blue:#3B82F6;
+  --bg:       #020817;
+  --bg1:      #0a1628;
+  --bg2:      #0f1f3d;
+  --card:     #0d1b35;
+  --card2:    #132040;
+  --green:    #10b981;
+  --green2:   #059669;
+  --glow:     rgba(16,185,129,0.18);
+  --glow2:    rgba(16,185,129,0.08);
+  --gold:     #f59e0b;
+  --red:      #ef4444;
+  --blue:     #3b82f6;
+  --text:     #f8fafc;
+  --muted:    #64748b;
+  --border:   rgba(148,163,184,0.08);
+  --border2:  rgba(16,185,129,0.2);
 }
 *{margin:0;padding:0;box-sizing:border-box}
 html{scroll-behavior:smooth}
-body{background:var(--black);color:var(--text);font-family:'Barlow',sans-serif;font-size:15px;line-height:1.6;overflow-x:hidden}
+body{
+  background:var(--bg);
+  color:var(--text);
+  font-family:'Inter',sans-serif;
+  font-size:15px;
+  line-height:1.6;
+  overflow-x:hidden;
+}
 .ar{font-family:'Cairo',sans-serif}
 
 /* SCROLLBAR */
-::-webkit-scrollbar{width:6px;height:6px}
-::-webkit-scrollbar-track{background:var(--dark)}
-::-webkit-scrollbar-thumb{background:var(--green-dark);border-radius:3px}
+::-webkit-scrollbar{width:4px}
+::-webkit-scrollbar-track{background:var(--bg)}
+::-webkit-scrollbar-thumb{background:var(--green2);border-radius:2px}
 
-/* HEADER */
-header{position:sticky;top:0;z-index:100;background:rgba(8,8,8,0.97);backdrop-filter:blur(16px);border-bottom:1px solid var(--border)}
-.header-inner{max-width:1280px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;height:58px;padding:0 24px}
-.logo{font-family:'Bebas Neue',sans-serif;font-size:30px;letter-spacing:2px;color:var(--text);text-decoration:none;display:flex;align-items:center;gap:8px}
-.logo span{color:var(--green)}
-.logo-ar{font-family:'Cairo',sans-serif;font-size:12px;color:var(--muted);letter-spacing:0;font-weight:600}
-nav{display:flex;gap:4px;align-items:center}
-nav a{color:var(--muted);text-decoration:none;font-size:13px;font-weight:500;padding:6px 14px;border-radius:6px;transition:all .2s}
-nav a:hover,nav a.active{color:var(--text);background:var(--card2)}
-.live-badge{background:var(--red);color:#fff;font-size:11px;font-weight:700;padding:3px 10px;border-radius:20px;letter-spacing:1px;animation:pulse 2s infinite}
-@keyframes pulse{0%,100%{opacity:1}50%{opacity:.65}}
-.lang-btn{background:var(--card2);border:1px solid var(--border);color:var(--text);font-size:12px;font-weight:700;padding:5px 12px;border-radius:6px;cursor:pointer;font-family:'Cairo',sans-serif;transition:all .2s}
-.lang-btn:hover{background:var(--green);color:#000;border-color:var(--green)}
+/* ── GRID OVERLAY ─────────────────────────────── */
+body::before{
+  content:'';
+  position:fixed;inset:0;
+  background-image:
+    linear-gradient(rgba(16,185,129,0.03) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(16,185,129,0.03) 1px,transparent 1px);
+  background-size:60px 60px;
+  pointer-events:none;z-index:0;
+}
 
-/* TICKER */
-.ticker-wrap{background:var(--green);overflow:hidden;padding:7px 0}
-.ticker{display:flex;gap:60px;animation:ticker 30s linear infinite;white-space:nowrap}
-@keyframes ticker{from{transform:translateX(0)}to{transform:translateX(-50%)}}
-.ticker-item{font-size:13px;font-weight:600;color:#000;display:flex;align-items:center;gap:8px}
-.ticker-score{background:rgba(0,0,0,0.15);padding:1px 8px;border-radius:4px}
+/* ── NAVBAR GLASSMORPHISM ─────────────────────── */
+header{
+  position:fixed;top:0;left:0;right:0;z-index:100;
+  background:rgba(2,8,23,0.8);
+  backdrop-filter:blur(20px);
+  -webkit-backdrop-filter:blur(20px);
+  border-bottom:1px solid var(--border);
+}
+.nav-inner{
+  max-width:1400px;margin:0 auto;
+  display:flex;align-items:center;justify-content:space-between;
+  height:62px;padding:0 28px;
+}
+.logo{
+  font-family:'Bebas Neue',sans-serif;
+  font-size:28px;letter-spacing:3px;
+  text-decoration:none;color:var(--text);
+  display:flex;align-items:center;gap:10px;
+}
+.logo-em{color:var(--green)}
+.logo-sub{
+  font-family:'Cairo',sans-serif;
+  font-size:11px;color:var(--muted);
+  font-weight:600;letter-spacing:0;
+}
+nav{display:flex;align-items:center;gap:4px}
+nav a{
+  color:var(--muted);text-decoration:none;
+  font-size:13px;font-weight:500;
+  padding:6px 16px;border-radius:8px;
+  transition:all .2s;letter-spacing:.3px;
+}
+nav a:hover,nav a.active{color:var(--text);background:rgba(255,255,255,0.06)}
+.live-pill{
+  display:flex;align-items:center;gap:6px;
+  background:rgba(239,68,68,0.15);
+  border:1px solid rgba(239,68,68,0.3);
+  color:#ef4444;
+  font-size:11px;font-weight:700;
+  padding:5px 14px;border-radius:20px;
+  letter-spacing:1px;cursor:pointer;
+}
+.live-dot{width:6px;height:6px;background:#ef4444;border-radius:50%;animation:blink 1.2s infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.2}}
+.lang-btn{
+  background:transparent;
+  border:1px solid var(--border2);
+  color:var(--text);font-size:12px;font-weight:700;
+  padding:5px 14px;border-radius:8px;cursor:pointer;
+  font-family:'Cairo',sans-serif;transition:all .2s;margin-left:6px;
+}
+.lang-btn:hover{background:var(--green);border-color:var(--green);color:#000}
 
-/* HERO */
-.hero{background:radial-gradient(ellipse at 20% 50%,#0d2010 0%,var(--black) 60%);padding:56px 24px 40px;position:relative;overflow:hidden}
-.hero::before{content:'SPORT';position:absolute;right:-20px;top:-30px;font-family:'Bebas Neue',sans-serif;font-size:200px;color:rgba(0,200,81,0.03);line-height:1;pointer-events:none;user-select:none}
-.hero-inner{max-width:1280px;margin:0 auto}
-.hero-tag{display:inline-flex;align-items:center;gap:6px;background:var(--green-glow);border:1px solid rgba(0,200,81,0.25);color:var(--green);font-size:12px;font-weight:600;padding:5px 14px;border-radius:20px;margin-bottom:18px;letter-spacing:.5px}
-.hero-tag::before{content:'';width:7px;height:7px;background:var(--green);border-radius:50%;animation:pulse 1.5s infinite}
-.hero h1{font-family:'Bebas Neue',sans-serif;font-size:clamp(52px,9vw,96px);line-height:.9;letter-spacing:2px;margin-bottom:10px}
-.hero h1 em{color:var(--green);font-style:normal}
-.hero-sub{font-family:'Cairo',sans-serif;font-size:17px;color:var(--muted);margin-bottom:28px;direction:rtl}
-.hero-stats{display:flex;gap:28px;flex-wrap:wrap}
-.hstat{text-align:center}
-.hstat-num{font-family:'Bebas Neue',sans-serif;font-size:34px;color:var(--green);line-height:1}
-.hstat-label{font-size:11px;color:var(--muted);letter-spacing:.5px;text-transform:uppercase}
+/* ── TICKER ───────────────────────────────────── */
+.ticker-wrap{
+  position:fixed;top:62px;left:0;right:0;z-index:99;
+  background:linear-gradient(90deg,var(--green2),#047857);
+  overflow:hidden;padding:6px 0;
+}
+.ticker{
+  display:flex;gap:56px;
+  animation:scroll 35s linear infinite;
+  white-space:nowrap;
+}
+@keyframes scroll{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+.ticker-item{
+  font-size:12px;font-weight:600;color:#fff;
+  display:flex;align-items:center;gap:8px;
+}
+.t-score{background:rgba(0,0,0,0.2);padding:1px 8px;border-radius:4px}
 
-/* LAYOUT */
-.container{max-width:1280px;margin:0 auto;padding:0 24px}
-.section{padding:44px 0}
-.section-head{display:flex;align-items:center;gap:12px;margin-bottom:22px}
-.section-title{font-family:'Bebas Neue',sans-serif;font-size:26px;letter-spacing:1px}
-.section-title-ar{font-family:'Cairo',sans-serif;font-size:12px;color:var(--muted);font-weight:600}
-.section-line{flex:1;height:1px;background:var(--border)}
-.grid-3{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px}
-.grid-2{display:grid;grid-template-columns:1.8fr 1fr;gap:20px}
+/* ── LAYOUT ───────────────────────────────────── */
+.main{padding-top:102px}
+.container{max-width:1400px;margin:0 auto;padding:0 28px}
+.section{padding:52px 0}
 
-/* LEAGUE TABS */
-.league-tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:16px;overflow-x:auto;padding-bottom:4px}
-.league-tab{background:var(--card);border:1px solid var(--border);color:var(--muted);font-size:12px;font-weight:600;padding:6px 14px;border-radius:20px;cursor:pointer;transition:all .2s;white-space:nowrap;font-family:'Barlow',sans-serif}
-.league-tab:hover{color:var(--text);border-color:rgba(0,200,81,0.3)}
-.league-tab.active{background:var(--green);color:#000;border-color:var(--green)}
+/* ── HERO ─────────────────────────────────────── */
+.hero{
+  position:relative;
+  padding:80px 28px 60px;
+  overflow:hidden;
+  background:radial-gradient(ellipse 120% 80% at 50% -20%,rgba(16,185,129,0.12) 0%,transparent 60%);
+}
+/* Eagle watermark */
+.hero::before{
+  content:'🦅';
+  position:absolute;right:-40px;top:-40px;
+  font-size:320px;opacity:.04;
+  transform:scaleX(-1);
+  pointer-events:none;user-select:none;
+  filter:grayscale(1);
+}
+/* WC 2026 geometric accent */
+.hero::after{
+  content:'2026';
+  position:absolute;left:-20px;bottom:-30px;
+  font-family:'Bebas Neue',sans-serif;
+  font-size:240px;color:transparent;
+  -webkit-text-stroke:1px rgba(16,185,129,0.06);
+  pointer-events:none;user-select:none;
+  line-height:1;
+}
+.hero-inner{max-width:1400px;margin:0 auto;position:relative;z-index:1}
+.hero-eyebrow{
+  display:inline-flex;align-items:center;gap:8px;
+  background:rgba(16,185,129,0.1);
+  border:1px solid var(--border2);
+  color:var(--green);
+  font-size:11px;font-weight:700;
+  padding:5px 16px;border-radius:20px;
+  margin-bottom:24px;letter-spacing:1px;
+  text-transform:uppercase;
+}
+.hero-eyebrow::before{
+  content:'';width:7px;height:7px;
+  background:var(--green);border-radius:50%;
+  animation:blink 1.5s infinite;
+}
+.hero-title{
+  font-family:'Bebas Neue',sans-serif;
+  font-size:clamp(56px,10vw,110px);
+  line-height:.9;letter-spacing:3px;
+  margin-bottom:16px;
+}
+.hero-title .grad{
+  background:linear-gradient(135deg,#10b981 0%,#34d399 40%,#6ee7b7 70%,#fff 100%);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+  background-clip:text;
+}
+.hero-sub{
+  font-family:'Cairo',sans-serif;
+  font-size:20px;color:var(--muted);
+  direction:rtl;margin-bottom:36px;
+}
+.hero-actions{display:flex;gap:14px;flex-wrap:wrap;align-items:center}
+.btn-primary{
+  display:inline-flex;align-items:center;gap:8px;
+  background:linear-gradient(135deg,var(--green),var(--green2));
+  color:#000;font-size:14px;font-weight:700;
+  padding:13px 28px;border-radius:10px;
+  text-decoration:none;transition:all .25s;
+  box-shadow:0 0 20px rgba(16,185,129,0.3);
+  letter-spacing:.3px;
+}
+.btn-primary:hover{transform:translateY(-2px);box-shadow:0 0 35px rgba(16,185,129,0.5)}
+.btn-secondary{
+  display:inline-flex;align-items:center;gap:8px;
+  background:transparent;
+  border:1px solid var(--border2);
+  color:var(--text);font-size:14px;font-weight:600;
+  padding:13px 28px;border-radius:10px;
+  text-decoration:none;transition:all .25s;
+  cursor:pointer;
+}
+.btn-secondary:hover{background:rgba(16,185,129,0.08);border-color:var(--green)}
+.hero-stats{
+  display:flex;gap:36px;margin-top:40px;
+  flex-wrap:wrap;
+}
+.hstat{border-left:2px solid var(--border2);padding-left:16px}
+.hstat-n{font-family:'Bebas Neue',sans-serif;font-size:38px;color:var(--green);line-height:1}
+.hstat-l{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-top:2px}
 
-/* SCORE CARD */
-.score-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:16px 20px;transition:all .25s;cursor:pointer}
-.score-card:hover{border-color:rgba(0,200,81,0.4);background:var(--card2);transform:translateY(-2px)}
-.score-league{font-size:11px;color:var(--muted);letter-spacing:.5px;text-transform:uppercase;margin-bottom:12px;display:flex;align-items:center;gap:6px}
-.score-league::before{content:'';width:5px;height:5px;background:var(--green);border-radius:50%}
-.score-match{display:flex;align-items:center;justify-content:space-between;gap:10px}
-.team{display:flex;flex-direction:column;align-items:center;gap:6px;flex:1}
-.team-logo{width:42px;height:42px;border-radius:50%;background:var(--card2);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;overflow:hidden}
-.team-logo img{width:30px;height:30px;object-fit:contain}
-.team-name{font-size:12px;font-weight:600;text-align:center;line-height:1.3}
-.score-center{text-align:center;min-width:80px}
-.score-num{font-family:'Bebas Neue',sans-serif;font-size:38px;line-height:1;color:var(--text);letter-spacing:3px}
-.score-time{font-size:11px;font-weight:700;padding:2px 8px;border-radius:4px;display:inline-block;margin-top:3px}
-.live{background:rgba(255,59,59,0.18);color:var(--red);animation:pulse 2s infinite}
-.finished{background:rgba(136,136,136,0.12);color:var(--muted)}
-.upcoming{background:var(--green-glow);color:var(--green)}
+/* ── ALGERIA LIVE WIDGET ──────────────────────── */
+.alg-widget{
+  background:linear-gradient(135deg,var(--card),var(--card2));
+  border:1px solid var(--border2);
+  border-radius:16px;padding:24px;
+  margin-bottom:28px;
+  position:relative;overflow:hidden;
+  box-shadow:0 0 40px rgba(16,185,129,0.08);
+}
+.alg-widget::before{
+  content:'🦅';
+  position:absolute;right:20px;top:50%;transform:translateY(-50%);
+  font-size:80px;opacity:.06;pointer-events:none;
+}
+.alg-label{
+  font-size:11px;font-weight:700;
+  color:var(--green);letter-spacing:1px;
+  text-transform:uppercase;margin-bottom:16px;
+  display:flex;align-items:center;gap:6px;
+}
+.alg-label::before{content:'';width:6px;height:6px;background:var(--green);border-radius:50%;animation:blink 1.5s infinite}
+.alg-match{
+  display:flex;align-items:center;justify-content:space-between;gap:16px;
+}
+.alg-team{display:flex;flex-direction:column;align-items:center;gap:8px;flex:1}
+.alg-flag{font-size:42px;filter:drop-shadow(0 0 12px rgba(16,185,129,0.4))}
+.alg-name{font-size:14px;font-weight:700;letter-spacing:.3px;text-align:center}
+.alg-score{text-align:center}
+.alg-num{
+  font-family:'Bebas Neue',sans-serif;
+  font-size:52px;letter-spacing:6px;
+  text-shadow:0 0 20px rgba(16,185,129,0.5);
+  line-height:1;
+}
+.alg-status{
+  font-size:11px;font-weight:700;
+  padding:3px 10px;border-radius:20px;
+  margin-top:6px;display:inline-block;
+  letter-spacing:.5px;
+}
+.alg-date{font-size:12px;color:var(--muted);margin-top:4px}
+
+/* ── SECTION HEADER ───────────────────────────── */
+.sec-head{
+  display:flex;align-items:center;gap:14px;
+  margin-bottom:24px;
+}
+.sec-title{
+  font-family:'Bebas Neue',sans-serif;
+  font-size:24px;letter-spacing:1px;
+}
+.sec-ar{
+  font-family:'Cairo',sans-serif;
+  font-size:12px;color:var(--muted);font-weight:600;
+}
+.sec-line{flex:1;height:1px;background:var(--border)}
+.sec-badge{
+  font-size:10px;font-weight:700;
+  background:rgba(16,185,129,0.15);
+  border:1px solid var(--border2);
+  color:var(--green);
+  padding:3px 10px;border-radius:20px;
+  letter-spacing:.5px;text-transform:uppercase;
+}
+
+/* ── LEAGUE TABS ──────────────────────────────── */
+.tabs{
+  display:flex;gap:6px;flex-wrap:wrap;
+  margin-bottom:18px;
+}
+.tab{
+  background:var(--card);border:1px solid var(--border);
+  color:var(--muted);font-size:12px;font-weight:600;
+  padding:7px 16px;border-radius:20px;
+  cursor:pointer;transition:all .2s;
+  white-space:nowrap;
+}
+.tab:hover{color:var(--text);border-color:var(--border2)}
+.tab.active{
+  background:linear-gradient(135deg,var(--green),var(--green2));
+  color:#000;border-color:var(--green);
+}
+
+/* ── SCORE CARD ───────────────────────────────── */
+.scores-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(280px,1fr));
+  gap:12px;
+}
+.score-card{
+  background:var(--card);
+  border:1px solid var(--border);
+  border-radius:14px;padding:16px 20px;
+  transition:all .3s;cursor:pointer;
+  position:relative;overflow:hidden;
+}
+.score-card::before{
+  content:'';
+  position:absolute;inset:0;
+  background:linear-gradient(135deg,var(--glow2),transparent);
+  opacity:0;transition:opacity .3s;
+}
+.score-card:hover{
+  border-color:var(--border2);
+  transform:translateY(-3px);
+  box-shadow:0 8px 30px rgba(16,185,129,0.12);
+}
+.score-card:hover::before{opacity:1}
+.card-league{
+  font-size:10px;color:var(--muted);
+  letter-spacing:.5px;text-transform:uppercase;
+  margin-bottom:14px;
+  display:flex;align-items:center;gap:6px;
+}
+.card-league::before{
+  content:'';width:4px;height:4px;
+  background:var(--green);border-radius:50%;
+}
+.match-row{
+  display:flex;align-items:center;
+  justify-content:space-between;gap:10px;
+}
+.team{
+  display:flex;flex-direction:column;
+  align-items:center;gap:6px;flex:1;
+}
+.team-logo{
+  width:40px;height:40px;
+  background:var(--card2);border-radius:50%;
+  border:1px solid var(--border);
+  display:flex;align-items:center;justify-content:center;
+  overflow:hidden;
+}
+.team-logo img{width:28px;height:28px;object-fit:contain}
+.team-name{
+  font-size:12px;font-weight:600;
+  text-align:center;line-height:1.3;
+}
+.score-mid{text-align:center;min-width:80px}
+.score-num{
+  font-family:'Bebas Neue',sans-serif;
+  font-size:36px;line-height:1;
+  letter-spacing:4px;
+}
+.score-num.glow{text-shadow:0 0 16px rgba(16,185,129,0.6)}
+.status-pill{
+  font-size:10px;font-weight:700;
+  padding:2px 8px;border-radius:20px;
+  display:inline-block;margin-top:4px;
+  letter-spacing:.5px;
+}
+.live-s{background:rgba(239,68,68,0.15);color:var(--red);animation:blink 2s infinite}
+.fin{background:rgba(100,116,139,0.15);color:var(--muted)}
+.soon{background:rgba(16,185,129,0.1);color:var(--green)}
 .match-date{font-size:10px;color:var(--muted);margin-top:3px}
 
-/* UPCOMING */
+/* ── UPCOMING LIST ────────────────────────────── */
 .upcoming-list{display:flex;flex-direction:column;gap:8px}
-.upcoming-item{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:12px 16px;display:flex;align-items:center;gap:14px;transition:all .2s}
-.upcoming-item:hover{border-color:rgba(0,200,81,0.3);background:var(--card2)}
-.upcoming-date{min-width:80px;text-align:center}
-.upd-day{font-size:11px;color:var(--muted);text-transform:capitalize}
-.upd-time{font-size:13px;font-weight:700;color:var(--green)}
-.upcoming-match{flex:1;display:flex;align-items:center;justify-content:space-between;gap:8px}
-.upm-team{display:flex;align-items:center;gap:8px;flex:1}
-.upm-team.right{flex-direction:row-reverse}
-.upm-team img{width:26px;height:26px;object-fit:contain}
-.upm-team span{font-size:13px;font-weight:600}
-.upm-vs{font-family:'Bebas Neue',sans-serif;font-size:16px;color:var(--muted);padding:0 6px}
+.upcoming-item{
+  background:var(--card);border:1px solid var(--border);
+  border-radius:12px;padding:12px 18px;
+  display:flex;align-items:center;gap:16px;
+  transition:all .25s;cursor:pointer;
+}
+.upcoming-item:hover{
+  border-color:var(--border2);
+  background:var(--card2);
+  box-shadow:0 0 20px rgba(16,185,129,0.08);
+}
+.up-date{min-width:76px;text-align:center}
+.up-day{font-size:11px;color:var(--muted);text-transform:capitalize}
+.up-time{font-size:13px;font-weight:700;color:var(--green)}
+.up-match{
+  flex:1;display:flex;
+  align-items:center;justify-content:space-between;gap:10px;
+}
+.up-team{display:flex;align-items:center;gap:8px;flex:1}
+.up-team.r{flex-direction:row-reverse}
+.up-team img{width:26px;height:26px;object-fit:contain}
+.up-team span{font-size:13px;font-weight:600}
+.up-vs{
+  font-family:'Bebas Neue',sans-serif;
+  font-size:16px;color:var(--muted);
+  padding:0 8px;
+}
 
-/* STANDINGS */
-.standings-table{width:100%;border-collapse:collapse}
-.standings-table th{font-size:11px;color:var(--muted);font-weight:600;padding:8px 12px;text-align:left;border-bottom:1px solid var(--border);letter-spacing:.5px;text-transform:uppercase}
-.standings-table td{padding:9px 12px;font-size:13px;border-bottom:1px solid rgba(255,255,255,0.03)}
-.standings-table tr:hover td{background:var(--card2)}
-.standings-table tr.highlight td{background:rgba(0,200,81,0.04)}
-.rank{font-family:'Bebas Neue',sans-serif;font-size:16px;color:var(--muted);width:32px}
-.rank.top{color:var(--green)}
-.rank.rel{color:var(--red)}
-.pts{font-weight:700;color:var(--text)}
-.form-dots{display:flex;gap:3px}
-.fd{width:8px;height:8px;border-radius:50%}
+/* ── WC GROUP CARD ────────────────────────────── */
+.group-card{
+  background:var(--card);border:1px solid var(--border);
+  border-radius:14px;overflow:hidden;
+  transition:all .25s;
+}
+.group-card:hover{border-color:var(--border2)}
+.group-header{
+  background:linear-gradient(135deg,var(--card2),var(--bg2));
+  padding:12px 18px;
+  display:flex;align-items:center;justify-content:space-between;
+  border-bottom:1px solid var(--border);
+}
+.group-name{
+  font-family:'Bebas Neue',sans-serif;
+  font-size:20px;letter-spacing:1px;color:var(--green);
+}
+.group-count{
+  font-size:11px;color:var(--muted);font-weight:600;
+}
+.group-table{width:100%;border-collapse:collapse}
+.group-table th{
+  font-size:10px;color:var(--muted);
+  padding:7px 14px;text-align:left;
+  letter-spacing:.5px;text-transform:uppercase;
+  border-bottom:1px solid var(--border);
+}
+.group-table td{
+  padding:9px 14px;font-size:13px;
+  border-bottom:1px solid rgba(255,255,255,0.03);
+}
+.group-table tr:last-child td{border-bottom:none}
+.group-table tr:hover td{background:rgba(16,185,129,0.04)}
+.group-table tr.qualify td{background:rgba(16,185,129,0.05)}
+.g-rank{
+  font-family:'Bebas Neue',sans-serif;
+  font-size:16px;color:var(--muted);width:28px;
+}
+.g-rank.q{color:var(--green)}
+.g-pts{font-weight:700;color:var(--text)}
+.form-row{display:flex;gap:3px}
+.fd{width:7px;height:7px;border-radius:50%}
 .fw{background:var(--green)}
 .fd2{background:var(--gold)}
 .fl{background:var(--red)}
 
-/* TOP 3 */
-.top3-title{font-size:12px;font-weight:700;color:var(--muted);letter-spacing:.5px;text-transform:uppercase;margin-bottom:10px;display:flex;align-items:center;gap:6px}
-.top3-item{display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--card);border:1px solid var(--border);border-radius:8px;margin-bottom:6px;transition:all .2s}
-.top3-item:hover{border-color:rgba(0,200,81,0.3)}
-.top3-rank{font-size:20px;width:28px;text-align:center}
+/* ── BENTO GRID ARTICLES ──────────────────────── */
+.bento{
+  display:grid;
+  grid-template-columns:repeat(12,1fr);
+  gap:14px;
+}
+.bento-card{
+  background:var(--card);border:1px solid var(--border);
+  border-radius:14px;overflow:hidden;cursor:pointer;
+  transition:all .3s;position:relative;
+}
+.bento-card:hover{
+  border-color:var(--border2);
+  transform:translateY(-2px);
+  box-shadow:0 0 24px rgba(16,185,129,0.15);
+}
+.bento-card.big{grid-column:span 7}
+.bento-card.med{grid-column:span 5}
+.bento-card.sml{grid-column:span 4}
+.bento-img{
+  height:200px;
+  background:linear-gradient(135deg,var(--bg2),var(--card2));
+  display:flex;align-items:center;justify-content:center;
+  font-size:56px;position:relative;
+}
+.bento-card.big .bento-img{height:260px}
+.bento-img-overlay{
+  position:absolute;inset:0;
+  background:linear-gradient(to top,var(--card) 0%,transparent 60%);
+}
+.bento-cat{
+  position:absolute;top:14px;left:14px;
+  background:var(--green);color:#000;
+  font-size:10px;font-weight:700;
+  padding:3px 10px;border-radius:4px;
+  letter-spacing:.5px;text-transform:uppercase;
+  z-index:1;
+}
+.bento-body{padding:16px}
+.bento-title{
+  font-size:15px;font-weight:700;
+  line-height:1.4;margin-bottom:6px;
+}
+.bento-card.big .bento-title{font-size:18px}
+.bento-title-ar{
+  font-family:'Cairo',sans-serif;
+  font-size:12px;color:var(--muted);
+  direction:rtl;margin-bottom:10px;
+}
+.bento-meta{
+  font-size:11px;color:var(--muted);
+  display:flex;gap:12px;flex-wrap:wrap;
+}
+.bento-excerpt{
+  font-size:13px;color:var(--muted);
+  line-height:1.6;margin-bottom:10px;
+  display:-webkit-box;-webkit-line-clamp:3;
+  -webkit-box-orient:vertical;overflow:hidden;
+}
+
+/* ── STANDINGS ────────────────────────────────── */
+.standings-wrap{
+  background:var(--card);border:1px solid var(--border);
+  border-radius:14px;overflow:hidden;
+}
+.standings-table{width:100%;border-collapse:collapse}
+.standings-table th{
+  font-size:10px;color:var(--muted);font-weight:600;
+  padding:9px 14px;text-align:left;
+  border-bottom:1px solid var(--border);
+  letter-spacing:.5px;text-transform:uppercase;
+}
+.standings-table td{
+  padding:10px 14px;font-size:13px;
+  border-bottom:1px solid rgba(255,255,255,0.03);
+}
+.standings-table tr:hover td{background:rgba(16,185,129,0.04)}
+.standings-table tr.hl td{background:rgba(16,185,129,0.06)}
+.s-rank{font-family:'Bebas Neue',sans-serif;font-size:16px;color:var(--muted);width:32px}
+.s-rank.top{color:var(--green)}
+.s-rank.rel{color:var(--red)}
+.s-pts{font-weight:700}
+
+/* ── SIDEBAR ──────────────────────────────────── */
+.sidebar-card{
+  background:var(--card);border:1px solid var(--border);
+  border-radius:14px;padding:20px;margin-bottom:14px;
+}
+.sidebar-title{
+  font-family:'Bebas Neue',sans-serif;
+  font-size:16px;letter-spacing:1px;
+  color:var(--green);margin-bottom:14px;
+}
+.social-item{
+  display:flex;align-items:center;gap:10px;
+  padding:10px 12px;
+  background:var(--card2);border:1px solid var(--border);
+  border-radius:10px;color:var(--text);
+  text-decoration:none;font-size:13px;
+  margin-bottom:8px;transition:all .2s;
+}
+.social-item:hover{border-color:var(--border2);background:rgba(16,185,129,0.08)}
+.social-count{margin-left:auto;color:var(--green);font-size:11px;font-weight:700}
+
+/* ── TOP3 ─────────────────────────────────────── */
+.top3-label{
+  font-size:11px;font-weight:700;
+  color:var(--muted);letter-spacing:.5px;
+  text-transform:uppercase;margin-bottom:10px;
+}
+.top3-item{
+  display:flex;align-items:center;gap:10px;
+  padding:10px 12px;
+  background:var(--card2);border:1px solid var(--border);
+  border-radius:10px;margin-bottom:6px;
+  transition:all .2s;
+}
+.top3-item:hover{border-color:var(--border2)}
+.top3-rnk{font-size:18px;width:28px;text-align:center}
 .top3-item img{width:28px;height:28px;object-fit:contain}
 .top3-info{flex:1}
 .top3-name{font-size:13px;font-weight:600}
 .top3-stat{font-size:11px;color:var(--muted)}
-.top3-num{font-family:'Bebas Neue',sans-serif;font-size:24px;color:var(--green)}
+.top3-num{
+  font-family:'Bebas Neue',sans-serif;
+  font-size:22px;color:var(--green);
+}
 
-/* ARTICLE CARD */
-.article-card{background:var(--card);border:1px solid var(--border);border-radius:12px;overflow:hidden;transition:all .25s;cursor:pointer}
-.article-card:hover{border-color:rgba(0,200,81,0.3);transform:translateY(-2px)}
-.article-img{height:160px;background:linear-gradient(135deg,#0d2010,#080808);display:flex;align-items:center;justify-content:center;position:relative}
-.article-cat{position:absolute;top:12px;left:12px;background:var(--green);color:#000;font-size:10px;font-weight:700;padding:3px 10px;border-radius:4px;letter-spacing:.5px;text-transform:uppercase}
-.article-body{padding:14px}
-.article-title{font-size:14px;font-weight:600;line-height:1.4;margin-bottom:5px}
-.article-title-ar{font-family:'Cairo',sans-serif;font-size:12px;color:var(--muted);direction:rtl;margin-bottom:8px}
-.article-meta{font-size:11px;color:var(--muted);display:flex;gap:12px;flex-wrap:wrap}
+/* ── CTA ──────────────────────────────────────── */
+.cta-band{
+  background:linear-gradient(135deg,#064e3b,#022c22);
+  border:1px solid var(--border2);
+  border-radius:16px;padding:36px;
+  display:flex;align-items:center;
+  justify-content:space-between;
+  flex-wrap:wrap;gap:20px;
+  position:relative;overflow:hidden;
+  margin-bottom:52px;
+}
+.cta-band::before{
+  content:'⚽';position:absolute;
+  right:36px;top:50%;transform:translateY(-50%);
+  font-size:100px;opacity:.06;
+}
+.cta-text h3{
+  font-family:'Bebas Neue',sans-serif;
+  font-size:28px;letter-spacing:1px;margin-bottom:4px;
+}
+.cta-text p{font-size:13px;color:rgba(255,255,255,.6)}
+.cta-text .par{font-family:'Cairo',sans-serif;direction:rtl;margin-top:4px}
 
-/* SIDEBAR */
-.sidebar-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:18px;margin-bottom:14px}
-.sidebar-title{font-family:'Bebas Neue',sans-serif;font-size:17px;letter-spacing:1px;margin-bottom:14px;color:var(--green)}
-.social-link-item{display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--card2);border:1px solid var(--border);border-radius:8px;color:var(--text);text-decoration:none;font-size:13px;margin-bottom:8px;transition:all .2s}
-.social-link-item:hover{border-color:var(--green)}
-.social-count{margin-left:auto;color:var(--green);font-size:11px;font-weight:700}
+/* ── FOOTER ───────────────────────────────────── */
+footer{
+  background:var(--bg1);
+  border-top:1px solid var(--border);
+  padding:48px 28px 24px;
+}
+.footer-inner{max-width:1400px;margin:0 auto}
+.footer-grid{
+  display:grid;
+  grid-template-columns:2fr 1fr 1fr 1fr;
+  gap:40px;margin-bottom:36px;
+}
+.f-logo{
+  font-family:'Bebas Neue',sans-serif;
+  font-size:32px;letter-spacing:2px;margin-bottom:10px;
+}
+.f-logo span{color:var(--green)}
+.f-desc{font-size:13px;color:var(--muted);line-height:1.7;margin-bottom:6px}
+.f-socials{display:flex;gap:8px;margin-top:14px}
+.f-soc{
+  width:32px;height:32px;
+  background:var(--card2);border:1px solid var(--border);
+  border-radius:8px;display:flex;align-items:center;
+  justify-content:center;text-decoration:none;
+  font-size:14px;transition:all .2s;
+}
+.f-soc:hover{background:var(--green);border-color:var(--green)}
+.f-col h4{
+  font-size:12px;font-weight:700;
+  margin-bottom:12px;letter-spacing:.5px;
+  text-transform:uppercase;color:var(--text);
+}
+.f-col a{
+  display:block;color:var(--muted);
+  text-decoration:none;font-size:13px;
+  margin-bottom:7px;transition:color .2s;
+}
+.f-col a:hover{color:var(--green)}
+.f-bottom{
+  border-top:1px solid var(--border);
+  padding-top:18px;
+  display:flex;justify-content:space-between;
+  align-items:center;font-size:12px;
+  color:var(--muted);flex-wrap:wrap;gap:8px;
+}
 
-/* CTA */
-.cta-banner{background:linear-gradient(135deg,var(--green-dark),#003d18);border-radius:16px;padding:32px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:20px;position:relative;overflow:hidden;margin-bottom:44px}
-.cta-banner::before{content:'⚽';position:absolute;right:32px;top:50%;transform:translateY(-50%);font-size:90px;opacity:.07}
-.cta-text h3{font-family:'Bebas Neue',sans-serif;font-size:26px;letter-spacing:1px;margin-bottom:4px}
-.cta-text p{font-size:13px;color:rgba(255,255,255,.65)}
-.btn-cta{background:#fff;color:#000;font-size:13px;font-weight:700;padding:11px 26px;border-radius:8px;text-decoration:none;transition:all .2s;white-space:nowrap}
-.btn-cta:hover{background:var(--green);transform:translateY(-2px)}
-
-/* FOOTER */
-footer{background:var(--dark);border-top:1px solid var(--border);padding:44px 24px 20px}
-.footer-inner{max-width:1280px;margin:0 auto}
-.footer-grid{display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:36px;margin-bottom:36px}
-.footer-logo{font-family:'Bebas Neue',sans-serif;font-size:34px;margin-bottom:8px}
-.footer-logo span{color:var(--green)}
-.footer-desc{font-size:13px;color:var(--muted);line-height:1.7;margin-bottom:6px}
-.footer-col h4{font-size:12px;font-weight:700;margin-bottom:12px;letter-spacing:.5px;text-transform:uppercase;color:var(--text)}
-.footer-col a{display:block;color:var(--muted);text-decoration:none;font-size:13px;margin-bottom:7px;transition:color .2s}
-.footer-col a:hover{color:var(--green)}
-.footer-bottom{border-top:1px solid var(--border);padding-top:18px;display:flex;justify-content:space-between;align-items:center;font-size:12px;color:var(--muted);flex-wrap:wrap;gap:8px}
-.socials{display:flex;gap:8px}
-.soc-btn{width:32px;height:32px;background:var(--card2);border:1px solid var(--border);border-radius:7px;display:flex;align-items:center;justify-content:center;text-decoration:none;font-size:14px;transition:all .2s}
-.soc-btn:hover{background:var(--green);border-color:var(--green)}
-
-/* STATES */
-.placeholder-state{grid-column:1/-1;text-align:center;padding:48px;color:var(--muted)}
-.spinner{width:36px;height:36px;border:3px solid var(--border);border-top-color:var(--green);border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 14px}
+/* ── PLACEHOLDER ──────────────────────────────── */
+.placeholder{
+  text-align:center;padding:48px 24px;
+  color:var(--muted);
+}
+.spinner{
+  width:32px;height:32px;
+  border:3px solid var(--border);
+  border-top-color:var(--green);
+  border-radius:50%;
+  animation:spin .8s linear infinite;
+  margin:0 auto 14px;
+}
 @keyframes spin{to{transform:rotate(360deg)}}
 
-/* ANIMATIONS */
-@keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
-.animate-in{animation:fadeUp .4s ease forwards}
+/* ── GRID LAYOUT ──────────────────────────────── */
+.grid-2{display:grid;grid-template-columns:1.8fr 1fr;gap:22px}
+
+/* ── ANIMATIONS ───────────────────────────────── */
+@keyframes fadeUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
 .fade-up{animation:fadeUp .5s ease forwards}
 .d1{animation-delay:.1s;opacity:0}
 .d2{animation-delay:.2s;opacity:0}
 .d3{animation-delay:.3s;opacity:0}
+.animate-in{animation:fadeUp .4s ease forwards}
 
-/* RESPONSIVE */
-@media(max-width:900px){.grid-2{grid-template-columns:1fr}.footer-grid{grid-template-columns:1fr 1fr}}
-@media(max-width:600px){nav a:not(.live-badge){display:none}.hero h1{font-size:56px}.footer-grid{grid-template-columns:1fr}}
+/* ── RESPONSIVE ───────────────────────────────── */
+@media(max-width:1024px){.grid-2{grid-template-columns:1fr}.bento-card.big,.bento-card.med,.bento-card.sml{grid-column:span 12}}
+@media(max-width:768px){.footer-grid{grid-template-columns:1fr 1fr}.hero-title{font-size:58px}nav a:not(.live-pill){display:none}}
+@media(max-width:480px){.footer-grid{grid-template-columns:1fr}.nav-inner{padding:0 16px}.container{padding:0 16px}}
 </style>
 </head>
 <body>
 
+<!-- NAVBAR -->
 <header>
-  <div class="header-inner">
-    <a href="#" class="logo">Sport<span>DZ</span><span class="logo-ar ar"> الجزائر الرياضية</span></a>
+  <div class="nav-inner">
+    <a href="#" class="logo">Sport<span class="logo-em">DZ</span><span class="logo-sub ar"> الجزائر الرياضية</span></a>
     <nav>
       <a href="#scores" class="active">Scores</a>
       <a href="#upcoming">Matchs</a>
+      <a href="#groupes">Groupes</a>
+      <a href="#actu">Actualités</a>
       <a href="#classement">Classement</a>
-      <a href="#" class="live-badge">🔴 LIVE</a>
+      <div class="live-pill"><div class="live-dot"></div> DIRECT 2026</div>
       <button class="lang-btn ar" onclick="toggleLang()">ع / Fr</button>
     </nav>
   </div>
 </header>
 
+<!-- TICKER -->
 <div class="ticker-wrap">
   <div class="ticker" id="ticker">
-    <span class="ticker-item">⚽ Chargement des scores... <span class="ticker-score">LIVE</span></span>
-    <span class="ticker-item">🇩🇿 Ligue 1 Algérie <span class="ticker-score">En direct</span></span>
-    <span class="ticker-item">🏆 Champions League <span class="ticker-score">Ce soir</span></span>
-    <span class="ticker-item">⚽ Chargement des scores... <span class="ticker-score">LIVE</span></span>
-    <span class="ticker-item">🇩🇿 Ligue 1 Algérie <span class="ticker-score">En direct</span></span>
-    <span class="ticker-item">🏆 Champions League <span class="ticker-score">Ce soir</span></span>
+    <span class="ticker-item">🏆 Coupe du Monde 2026 <span class="t-score">EN DIRECT</span></span>
+    <span class="ticker-item">🇩🇿 Algérie — Groupe D <span class="t-score">Phase de groupes</span></span>
+    <span class="ticker-item">⚽ Chargement des scores... <span class="t-score">LIVE</span></span>
+    <span class="ticker-item">🏆 Coupe du Monde 2026 <span class="t-score">EN DIRECT</span></span>
+    <span class="ticker-item">🇩🇿 Algérie — Groupe D <span class="t-score">Phase de groupes</span></span>
+    <span class="ticker-item">⚽ Chargement des scores... <span class="t-score">LIVE</span></span>
   </div>
 </div>
 
+<!-- MAIN -->
+<div class="main">
+
+<!-- HERO -->
 <section class="hero">
   <div class="hero-inner">
-    <div class="hero-tag fade-up">Scores en direct · أخبار مباشرة</div>
-    <h1 class="fade-up d1">SPORT<em>DZ</em><br>LIVE</h1>
-    <p class="hero-sub fade-up d2 ar">أخبار الرياضة الجزائرية والعالمية في مكان واحد</p>
+    <div class="hero-eyebrow fade-up">🏆 Coupe du Monde 2026 · كأس العالم</div>
+    <h1 class="hero-title fade-up d1">
+      <span class="grad">SPORT</span>DZ<br>
+      <span style="font-size:.55em;color:var(--muted)">COUPE DU MONDE</span>
+    </h1>
+    <p class="hero-sub fade-up d2">أخبار الجزائر والكرة العالمية في مكان واحد</p>
+    <div class="hero-actions fade-up d3">
+      <a href="#scores" class="btn-primary">🇩🇿 Suivre les Fennecs</a>
+      <a href="#groupes" class="btn-secondary">Voir les groupes →</a>
+    </div>
     <div class="hero-stats fade-up d3">
-      <div class="hstat"><div class="hstat-num">24/7</div><div class="hstat-label">Couverture</div></div>
-      <div class="hstat"><div class="hstat-num">8</div><div class="hstat-label">Championnats</div></div>
-      <div class="hstat"><div class="hstat-num">LIVE</div><div class="hstat-label">Scores</div></div>
-      <div class="hstat"><div class="hstat-num">🇩🇿</div><div class="hstat-label">Focus DZ</div></div>
+      <div class="hstat"><div class="hstat-n">32</div><div class="hstat-l">Nations</div></div>
+      <div class="hstat"><div class="hstat-n">64</div><div class="hstat-l">Matchs</div></div>
+      <div class="hstat"><div class="hstat-n">LIVE</div><div class="hstat-l">Scores</div></div>
+      <div class="hstat"><div class="hstat-n">🇩🇿</div><div class="hstat-l">Focus DZ</div></div>
     </div>
   </div>
 </section>
 
-<!-- SCORES -->
+<!-- SCORES + SIDEBAR -->
 <section class="section" id="scores">
-  <div class="container">
-    <div class="section-head">
-      <div class="section-title">Scores du jour</div>
-      <div class="section-title-ar ar">نتائج اليوم</div>
-      <div class="section-line"></div>
-    </div>
-    <div class="league-tabs" id="scores-tabs"></div>
-    <div id="scores-container">
-      <div class="placeholder-state"><div class="spinner"></div><div>Chargement des scores en direct...</div><div class="ar" style="font-size:12px;color:var(--muted)">جاري تحميل النتائج...</div></div>
-    </div>
-  </div>
-</section>
-
-<!-- PROCHAINS MATCHS + SIDEBAR -->
-<section class="section" id="upcoming" style="padding-top:0">
   <div class="container">
     <div class="grid-2">
       <div>
-        <div class="section-head">
-          <div class="section-title">Prochains Matchs</div>
-          <div class="section-title-ar ar">المباريات القادمة</div>
-          <div class="section-line"></div>
+        <!-- Algeria Widget -->
+        <div class="alg-widget" id="alg-widget">
+          <div class="alg-label">🇩🇿 Prochain match des Fennecs</div>
+          <div class="alg-match">
+            <div class="alg-team">
+              <div class="alg-flag">🇩🇿</div>
+              <div class="alg-name">Algérie</div>
+            </div>
+            <div class="alg-score">
+              <div class="alg-num" id="alg-score">VS</div>
+              <div class="alg-status soon" id="alg-status">À venir</div>
+              <div class="alg-date" id="alg-date">Chargement...</div>
+            </div>
+            <div class="alg-team">
+              <div class="alg-flag" id="alg-opp-flag">❓</div>
+              <div class="alg-name" id="alg-opp">?</div>
+            </div>
+          </div>
         </div>
-        <div class="league-tabs" id="upcoming-tabs">
-          <div class="league-tab active">Chargement...</div>
+
+        <div class="sec-head">
+          <div class="sec-title">Scores du Jour</div>
+          <div class="sec-ar ar">نتائج اليوم</div>
+          <div class="sec-line"></div>
+          <div class="sec-badge">CdM 2026</div>
         </div>
-        <div id="upcoming-container">
-          <div class="placeholder-state"><div class="spinner"></div><div>Chargement...</div></div>
+        <div class="tabs" id="scores-tabs"></div>
+        <div id="scores-container">
+          <div class="placeholder"><div class="spinner"></div>Chargement des scores...</div>
         </div>
       </div>
+
       <div>
-        <div class="section-head">
-          <div class="section-title" style="font-size:20px">Suivez-nous</div>
-          <div class="section-line"></div>
+        <div class="sec-head" style="margin-bottom:14px">
+          <div class="sec-title" style="font-size:18px">Suivez-nous</div>
+          <div class="sec-line"></div>
         </div>
         <div class="sidebar-card">
-          <div class="sidebar-title ar">تابعنا — Suivez-nous</div>
-          <a href="#" class="social-link-item">📱 Canal Telegram SportDZ<span class="social-count">+2.4k</span></a>
-          <a href="#" class="social-link-item">🎵 TikTok @SportDZ<span class="social-count">+8.1k</span></a>
-          <a href="#" class="social-link-item">📘 Facebook SportDZ<span class="social-count">+5.6k</span></a>
-          <a href="#" class="social-link-item">▶️ YouTube SportDZ<span class="social-count">+1.2k</span></a>
+          <div class="sidebar-title ar">تابعنا — Réseaux</div>
+          <a href="#" class="social-item">📱 Canal Telegram SportDZ<span class="social-count">+2.4k</span></a>
+          <a href="#" class="social-item">🎵 TikTok @SportDZ<span class="social-count">+8.1k</span></a>
+          <a href="#" class="social-item">📘 Facebook SportDZ<span class="social-count">+5.6k</span></a>
+          <a href="#" class="social-item">▶️ YouTube SportDZ<span class="social-count">+1.2k</span></a>
         </div>
         <div class="sidebar-card">
           <div class="sidebar-title">Top 3 Championnats</div>
           <div id="top-scorers-container">
-            <div style="text-align:center;padding:20px;color:var(--muted)">Chargement...</div>
+            <div class="placeholder" style="padding:20px"><div class="spinner"></div></div>
           </div>
         </div>
       </div>
@@ -286,59 +793,76 @@ footer{background:var(--dark);border-top:1px solid var(--border);padding:44px 24
   </div>
 </section>
 
-<!-- ARTICLES -->
-<section class="section" id="actu" style="padding-top:0">
+<!-- PROCHAINS MATCHS PAR GROUPE -->
+<section class="section" id="upcoming" style="padding-top:0">
   <div class="container">
-    <div class="section-head">
-      <div class="section-title">Actualités</div>
-      <div class="section-title-ar ar">أحدث الأخبار</div>
-      <div class="section-line"></div>
+    <div class="sec-head">
+      <div class="sec-title">Prochains Matchs</div>
+      <div class="sec-ar ar">المباريات القادمة</div>
+      <div class="sec-line"></div>
     </div>
-    <div class="grid-3" id="articles-container">
-      <div class="placeholder-state"><div class="spinner"></div><div>Chargement des articles...</div></div>
+    <div class="tabs" id="upcoming-tabs"></div>
+    <div id="upcoming-container">
+      <div class="placeholder"><div class="spinner"></div>Chargement...</div>
     </div>
   </div>
 </section>
 
-<!-- CLASSEMENT -->
-<section class="section" id="classement" style="padding-top:0">
+<!-- GROUPES CdM 2026 -->
+<section class="section" id="groupes" style="padding-top:0">
   <div class="container">
-    <div class="section-head">
-      <div class="section-title">Classements</div>
-      <div class="section-title-ar ar">الترتيب</div>
-      <div class="section-line"></div>
+    <div class="sec-head">
+      <div class="sec-title">Groupes — Coupe du Monde 2026</div>
+      <div class="sec-ar ar">مجموعات كأس العالم 2026</div>
+      <div class="sec-line"></div>
     </div>
-    <div class="league-tabs" id="standings-tabs"></div>
-    <div style="background:var(--card);border:1px solid var(--border);border-radius:12px;overflow:hidden">
+    <div class="tabs" id="standings-tabs"></div>
+    <div class="standings-wrap" style="margin-top:4px">
       <table class="standings-table">
         <thead>
           <tr>
-            <th>#</th><th>Équipe</th><th>J</th><th>G</th><th>N</th><th>P</th><th>Buts</th><th>Pts</th><th>Forme</th>
+            <th>#</th><th>Équipe</th>
+            <th>J</th><th>G</th><th>N</th><th>P</th>
+            <th>Buts</th><th>Pts</th><th>Forme</th>
           </tr>
         </thead>
         <tbody id="standings-body">
-          <tr><td colspan="9" style="text-align:center;padding:24px;color:var(--muted)"><div class="spinner" style="margin:0 auto"></div></td></tr>
+          <tr><td colspan="9" style="text-align:center;padding:28px">
+            <div class="spinner" style="margin:0 auto;width:28px;height:28px;border-width:2px"></div>
+          </td></tr>
         </tbody>
       </table>
     </div>
     <div style="display:flex;gap:16px;margin-top:10px;font-size:11px;color:var(--muted);flex-wrap:wrap">
-      <span><span style="color:var(--green)">●</span> Qualification UEFA/CAF</span>
-      <span><span style="color:var(--red)">●</span> Relégation</span>
-      <span>G=Gagné · N=Nul · P=Perdu</span>
-      <span class="ar">يتحدث تلقائيًا كل 10 ثوانٍ</span>
+      <span><span style="color:var(--green)">●</span> Qualifié pour les 8èmes</span>
+      <span><span style="color:var(--red)">●</span> Éliminé</span>
+    </div>
+  </div>
+</section>
+
+<!-- ACTUALITES BENTO GRID -->
+<section class="section" id="actu" style="padding-top:0">
+  <div class="container">
+    <div class="sec-head">
+      <div class="sec-title">Actualités</div>
+      <div class="sec-ar ar">أحدث الأخبار</div>
+      <div class="sec-line"></div>
+    </div>
+    <div class="bento" id="articles-container">
+      <div style="grid-column:span 12" class="placeholder"><div class="spinner"></div>Chargement des articles...</div>
     </div>
   </div>
 </section>
 
 <!-- CTA -->
 <div class="container">
-  <div class="cta-banner">
+  <div class="cta-band">
     <div class="cta-text">
       <h3>Notifications en temps réel</h3>
       <p>Rejoins le canal Telegram — scores, buts et alertes instantanées</p>
-      <p class="ar" style="font-family:'Cairo',sans-serif;direction:rtl;margin-top:4px">انضم إلى قناتنا على تيليغرام</p>
+      <p class="par ar">انضم إلى قناتنا على تيليغرام للحصول على النتائج فور صدورها</p>
     </div>
-    <a href="#" class="btn-cta">📱 Rejoindre Telegram</a>
+    <a href="#" class="btn-primary">📱 Rejoindre Telegram</a>
   </div>
 </div>
 
@@ -347,56 +871,61 @@ footer{background:var(--dark);border-top:1px solid var(--border);padding:44px 24
   <div class="footer-inner">
     <div class="footer-grid">
       <div>
-        <div class="footer-logo">Sport<span>DZ</span></div>
-        <p class="footer-desc">Le premier site algérien de scores et d'actualités sportives en temps réel.</p>
-        <p class="footer-desc ar">أول موقع جزائري للنتائج والأخبار الرياضية في الوقت الفعلي</p>
-        <div class="socials" style="margin-top:14px">
-          <a href="#" class="soc-btn">📱</a>
-          <a href="#" class="soc-btn">🎵</a>
-          <a href="#" class="soc-btn">📘</a>
-          <a href="#" class="soc-btn">▶️</a>
+        <div class="f-logo">Sport<span>DZ</span></div>
+        <p class="f-desc">Le premier site algérien de scores et d'actualités sportives en temps réel.</p>
+        <p class="f-desc ar">أول موقع جزائري للنتائج والأخبار الرياضية في الوقت الفعلي</p>
+        <div class="f-socials">
+          <a href="#" class="f-soc">📱</a>
+          <a href="#" class="f-soc">🎵</a>
+          <a href="#" class="f-soc">📘</a>
+          <a href="#" class="f-soc">▶️</a>
         </div>
       </div>
-      <div class="footer-col">
+      <div class="f-col">
         <h4>Sports</h4>
         <a href="#">Football</a><a href="#">Basketball</a><a href="#">Handball</a><a href="#">Tennis</a>
       </div>
-      <div class="footer-col">
-        <h4>Ligues</h4>
-        <a href="#">Ligue 1 DZ 🇩🇿</a><a href="#">Premier League</a><a href="#">La Liga</a><a href="#">Ligue 1 FR</a>
+      <div class="f-col">
+        <h4>Compétitions</h4>
+        <a href="#">Coupe du Monde 2026 🏆</a>
+        <a href="#">Premier League</a>
+        <a href="#">La Liga</a>
+        <a href="#">Ligue 1 DZ 🇩🇿</a>
       </div>
-      <div class="footer-col">
+      <div class="f-col">
         <h4>Site</h4>
-        <a href="#">À propos</a><a href="#">Contact</a><a href="#">Publicité</a><a href="#">Newsletter</a>
+        <a href="#">À propos</a><a href="#">Contact</a>
+        <a href="#">Publicité</a><a href="#">Newsletter</a>
       </div>
     </div>
-    <div class="footer-bottom">
-      <span>© 2025 SportDZ — Tous droits réservés</span>
-      <span class="ar">جميع الحقوق محفوظة · SportDZ 2025</span>
+    <div class="f-bottom">
+      <span>© 2026 SportDZ — Tous droits réservés</span>
+      <span class="ar">جميع الحقوق محفوظة · SportDZ 2026</span>
     </div>
   </div>
 </footer>
 
+</div><!-- .main -->
+
 <script>
-function toggleLang() {
-  const html = document.documentElement;
-  const isAr = html.dir === 'rtl';
-  html.dir = isAr ? 'ltr' : 'rtl';
-  html.lang = isAr ? 'fr' : 'ar';
+function toggleLang(){
+  const h=document.documentElement;
+  const isAr=h.dir==='rtl';
+  h.dir=isAr?'ltr':'rtl';
+  h.lang=isAr?'fr':'ar';
 }
 
-const observer = new IntersectionObserver(entries => {
-  entries.forEach(e => {
-    if (e.isIntersecting) {
-      e.target.style.animation = 'fadeUp .4s ease forwards';
-      observer.unobserve(e.target);
+// Animate on scroll
+const obs=new IntersectionObserver(entries=>{
+  entries.forEach(e=>{
+    if(e.isIntersecting){
+      e.target.style.animation='fadeUp .4s ease forwards';
+      obs.unobserve(e.target);
     }
   });
-}, { threshold: 0.08 });
-
-document.querySelectorAll('.score-card,.upcoming-item,.top3-item,.sidebar-card').forEach(el => {
-  el.style.opacity = '0';
-  observer.observe(el);
+},{threshold:.08});
+document.querySelectorAll('.score-card,.upcoming-item,.bento-card,.top3-item,.group-card').forEach(el=>{
+  el.style.opacity='0';obs.observe(el);
 });
 </script>
 <script src="scores.js"></script>
