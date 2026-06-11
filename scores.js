@@ -1,365 +1,494 @@
-const PROXY='/api/proxy';
-const LEAGUES_FD=[
-  {code:'PL',name:'Premier League',flag:'🏴󠁧󠁢󠁥󠁮󠁧󠁿'},
-  {code:'PD',name:'La Liga',flag:'🇪🇸'},
-  {code:'BL1',name:'Bundesliga',flag:'🇩🇪'},
-  {code:'SA',name:'Serie A',flag:'🇮🇹'},
-  {code:'FL1',name:'Ligue 1',flag:'🇫🇷'},
-  {code:'PPL',name:'Primeira Liga',flag:'🇵🇹'},
+// SportDZ — Coupe du Monde 2026 (données réelles openfootball)
+const PROXY = '/api/proxy';
+
+const LEAGUES_FD = [
+  {code:'PL', name:'Premier League', flag:'🏴󠁧󠁢󠁥󠁮󠁧󠁿'},
+  {code:'PD', name:'La Liga',         flag:'🇪🇸'},
+  {code:'BL1',name:'Bundesliga',      flag:'🇩🇪'},
+  {code:'SA', name:'Serie A',         flag:'🇮🇹'},
+  {code:'FL1',name:'Ligue 1',         flag:'🇫🇷'},
+  {code:'PPL',name:'Primeira Liga',   flag:'🇵🇹'},
 ];
 
-async function api(action,extra=''){
-  const r=await fetch(`${PROXY}?action=${action}${extra}`);
-  if(!r.ok) throw new Error(`HTTP ${r.status}`);
-  return r.json();
+async function api(action, extra='') {
+  const res = await fetch(`${PROXY}?action=${action}${extra}`);
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  return res.json();
 }
-function ft(d){try{return new Date(d).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit',timeZone:'Africa/Algiers'})}catch(e){return '--:--'}}
-function fd(d){try{return new Date(d).toLocaleDateString('fr-FR',{weekday:'short',day:'2-digit',month:'short',timeZone:'Africa/Algiers'})}catch(e){return ''}}
-function fdf(d){try{return new Date(d).toLocaleDateString('fr-FR',{weekday:'long',day:'2-digit',month:'long',timeZone:'Africa/Algiers'})}catch(e){return ''}}
-function cr(url,s=32){
-  if(!url) return `<div style="width:${s}px;height:${s}px;background:var(--card2);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:${Math.round(s*.5)}px">⚽</div>`;
-  return `<img src="${url}" style="width:${s}px;height:${s}px;object-fit:contain" onerror="this.outerHTML='<span style=font-size:14px>⚽</span>'">`;
+
+function fmtTime(d) {
+  try { return new Date(d).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit',timeZone:'Africa/Algiers'}); }
+  catch(e){ return '--:--'; }
 }
-function ph(msg,ar=''){return `<div class="ph"><div class="spin"></div><div>${msg}</div>${ar?`<div class="ar" style="font-size:11px;margin-top:3px;color:var(--muted)">${ar}</div>`:''}</div>`}
+function fmtDate(d) {
+  try { return new Date(d).toLocaleDateString('fr-FR',{weekday:'short',day:'2-digit',month:'short',timeZone:'Africa/Algiers'}); }
+  catch(e){ return ''; }
+}
+function ph(msg, ar='') {
+  return `<div class="loading-state" style="grid-column:1/-1"><div class="spinner"></div><div>${msg}</div>${ar?`<div class="ar" style="font-size:11px;margin-top:3px;color:var(--text3)">${ar}</div>`:''}</div>`;
+}
 
 // ── ALGERIA WIDGET ────────────────────────────────
-function updateAlgWidget(matches){
-  const alg=matches.find(m=>
-    /alger|algérie/i.test(m.homeTeam)||/alger|algérie/i.test(m.awayTeam)||
-    /alg/i.test(m.homeShort)||/alg/i.test(m.awayShort)
+function updateAlgWidget(matches) {
+  const alg = matches.find(m =>
+    /alger/i.test(m.homeTeam) || /alger/i.test(m.awayTeam)
   );
-  if(!alg) return;
-  const isHome=/alger|algérie|alg/i.test(alg.homeTeam)||/alg/i.test(alg.homeShort);
-  const opp=isHome?alg.awayTeam:alg.homeTeam;
-  document.getElementById('alg-onm').textContent=opp||'?';
-  document.getElementById('alg-ofl').textContent='🏳️';
-  const isLive=alg.status==='STATUS_IN_PROGRESS'||alg.status==='STATUS_HALFTIME';
-  const isFin=alg.status==='STATUS_FINAL';
-  if(isFin||isLive){
-    const gh=alg.homeScore??0,ga=alg.awayScore??0;
-    const sc=isHome?`${gh} - ${ga}`:`${ga} - ${gh}`;
-    const el=document.getElementById('alg-sc');
-    el.textContent=sc;el.classList.add('glow');
-    const st=document.getElementById('alg-st');
-    st.textContent=isLive?`🔴 ${alg.clock||'LIVE'}`:'Terminé';
-    st.className=`alg-st ${isLive?'live-p':'fin-p'}`;
+  if (!alg) return;
+
+  const isHome = /alger/i.test(alg.homeTeam);
+  const opp = isHome ? alg.awayTeam : alg.homeTeam;
+  const oppFlag = isHome ? alg.awayFlag : alg.homeFlag;
+
+  document.getElementById('alg-opp-name').textContent = opp || '?';
+  document.getElementById('alg-opp-flag').textContent = oppFlag || '🏳️';
+
+  const isLive = alg.status === 'STATUS_IN_PROGRESS' || alg.status === 'STATUS_HALFTIME';
+  const isFin  = alg.status === 'STATUS_FINAL';
+
+  if (isFin || isLive) {
+    const gh = alg.homeScore ?? 0, ga = alg.awayScore ?? 0;
+    const sc = isHome ? `${gh} - ${ga}` : `${ga} - ${gh}`;
+    const scoreEl = document.getElementById('alg-score');
+    scoreEl.textContent = sc;
+    scoreEl.classList.add('glow');
+    const badge = document.getElementById('alg-badge');
+    badge.textContent = isLive ? '🔴 EN DIRECT' : 'Terminé';
+    badge.className = `alg-badge ${isLive ? 'badge-live' : 'badge-fin'}`;
   } else {
-    document.getElementById('alg-sc').textContent=ft(alg.date);
-    document.getElementById('alg-dt').textContent=fd(alg.date);
-    document.getElementById('alg-ve').textContent=alg.venue?`📍 ${alg.venue}${alg.city?', '+alg.city:''}` :'';
+    document.getElementById('alg-score').textContent = fmtTime(alg.date);
+    document.getElementById('alg-date').textContent = `📅 ${fmtDate(alg.date)}`;
+    document.getElementById('alg-venue').textContent = alg.venue ? `📍 ${alg.venue}` : '';
   }
 }
 
-// ── SCORES PAR JOUR ───────────────────────────────
-let scData={};
-async function fetchScores(){
-  const el=document.getElementById('scores-con');
-  const tabs=document.getElementById('scores-tabs');
-  if(!el) return;
-  el.innerHTML=ph('Chargement des scores...','جاري تحميل النتائج...');
-  try{
-    const data=await api('scores');
-    const all=data.matches||[];
-    updateAlgWidget(all);
+// ── SCORES DU JOUR ────────────────────────────────
+let scoresData = {};
 
-    // Grouper par ligue (pas par date)
-    scData={};
-    all.forEach(m=>{
-      const k=m.league||'Autres';
-      if(!scData[k]) scData[k]=[];
-      scData[k].push(m);
+async function fetchScores() {
+  const el = document.getElementById('scores-container');
+  const tabs = document.getElementById('scores-tabs');
+  if (!el) return;
+  el.innerHTML = ph('Chargement des scores CdM 2026...', 'جاري تحميل النتائج...');
+
+  try {
+    const data = await api('scores');
+    const all = data.matches || [];
+
+    // Mettre à jour widget Algérie
+    if (all.length) updateAlgWidget(all);
+
+    // Grouper par groupe
+    scoresData = {};
+    all.forEach(m => {
+      const k = m.group || m.league || 'CdM 2026';
+      if (!scoresData[k]) scoresData[k] = [];
+      scoresData[k].push(m);
     });
 
-    // Supprimer ligues vides
-    Object.keys(scData).forEach(k=>{if(!scData[k].length) delete scData[k]});
-    const leagues=Object.keys(scData);
+    const keys = Object.keys(scoresData);
 
-    if(!leagues.length){
-      if(tabs) tabs.innerHTML='';
-      el.innerHTML=ph('Aucun match aujourd\'hui','لا توجد مباريات اليوم');
+    if (!keys.length) {
+      if (tabs) tabs.innerHTML = '';
+      el.innerHTML = ph('Aucun match aujourd\'hui', 'لا توجد مباريات اليوم');
+      // Afficher quand même le widget Algérie depuis upcoming
+      fetchUpcomingForWidget();
       return;
     }
 
-    if(tabs){
-      tabs.innerHTML=leagues.map((lg,i)=>{
-        const cnt=scData[lg].length;
-        const flag=scData[lg][0]?.leagueFlag||'⚽';
-        return `<button class="tab ${i===0?'on':''}" onclick="swSc('${lg.replace(/'/g,"\\'")}',this)">${flag} ${lg} <span style="font-size:9px;opacity:.6">(${cnt})</span></button>`;
+    if (tabs) {
+      tabs.innerHTML = keys.map((k, i) => {
+        const cnt = scoresData[k].length;
+        return `<button class="tab-btn ${i===0?'active':''}" onclick="switchScores('${k.replace(/'/g,"\\'")}',this)">${k} <span style="font-size:9px;opacity:.6">(${cnt})</span></button>`;
       }).join('');
     }
-    renderSc(leagues[0]);
-    clearInterval(window._sci);
-    let idx=0;
-    window._sci=setInterval(()=>{
-      idx=(idx+1)%leagues.length;
-      if(tabs){tabs.querySelectorAll('.tab').forEach(t=>t.classList.remove('on'));tabs.querySelectorAll('.tab')[idx]?.classList.add('on')}
-      renderSc(leagues[idx]);
-    },8000);
+
+    renderScores(keys[0]);
+
+    clearInterval(window._scInt);
+    let idx = 0;
+    window._scInt = setInterval(() => {
+      idx = (idx+1) % keys.length;
+      if (tabs) { tabs.querySelectorAll('.tab-btn').forEach(t=>t.classList.remove('active')); tabs.querySelectorAll('.tab-btn')[idx]?.classList.add('active'); }
+      renderScores(keys[idx]);
+    }, 7000);
+
     updateTicker(all);
-  }catch(e){
-    el.innerHTML=ph(`Erreur: ${e.message}`,'');
-    setTimeout(fetchScores,30000);
+  } catch(e) {
+    console.error('Scores:', e);
+    el.innerHTML = ph(`Erreur: ${e.message}`, '');
+    setTimeout(fetchScores, 30000);
   }
 }
-window.swSc=function(lg,btn){
-  clearInterval(window._sci);
-  document.querySelectorAll('#scores-tabs .tab').forEach(t=>t.classList.remove('on'));
-  btn.classList.add('on');renderSc(lg);
+
+async function fetchUpcomingForWidget() {
+  try {
+    const data = await api('upcoming');
+    const ms = data.matches || [];
+    if (ms.length) updateAlgWidget(ms);
+  } catch(e) {}
+}
+
+window.switchScores = function(key, btn) {
+  clearInterval(window._scInt);
+  document.querySelectorAll('#scores-tabs .tab-btn').forEach(t=>t.classList.remove('active'));
+  btn.classList.add('active');
+  renderScores(key);
 };
-function renderSc(lg){
-  const el=document.getElementById('scores-con');
-  const ms=scData[lg]||[];
-  if(!ms.length){el.innerHTML=ph('Aucun match','');return}
-  const ord={STATUS_IN_PROGRESS:0,STATUS_HALFTIME:1,STATUS_SCHEDULED:2,STATUS_TIMED:2,STATUS_FINAL:3};
-  ms.sort((a,b)=>(ord[a.status]??2)-(ord[b.status]??2));
-  el.innerHTML=`<div class="sg">${ms.map(m=>{
-    const isL=m.status==='STATUS_IN_PROGRESS'||m.status==='STATUS_HALFTIME';
-    const isF=m.status==='STATUS_FINAL';
-    const isU=!isL&&!isF;
-    const cls=isL?'live-p':isF?'fin-p':'soon-p';
-    const lbl=isL?`🔴 ${m.clock||'LIVE'}`:isF?'Terminé':'À venir';
-    const sc=isU?ft(m.date):`${m.homeScore??0} - ${m.awayScore??0}`;
-    return `<div class="sc ani">
-      <div class="sc-lg">${m.leagueFlag||'⚽'} ${m.league||'Football'}</div>
-      <div class="mr">
-        <div class="tm"><div class="tl">${cr(m.homeLogo)}</div><div class="tn">${m.homeShort||m.homeTeam}</div></div>
-        <div class="sm"><div class="sn ${isL?'glow':''}">${sc}</div><span class="sp ${cls}">${lbl}</span>${isU?`<div class="md">${fd(m.date)}</div>`:''}</div>
-        <div class="tm"><div class="tl">${cr(m.awayLogo)}</div><div class="tn">${m.awayShort||m.awayTeam}</div></div>
+
+function renderScores(key) {
+  const el = document.getElementById('scores-container');
+  const ms = scoresData[key] || [];
+  if (!ms.length) { el.innerHTML = ph('Aucun match', ''); return; }
+
+  const order = {STATUS_IN_PROGRESS:0, STATUS_HALFTIME:1, STATUS_SCHEDULED:2, STATUS_FINAL:3};
+  ms.sort((a,b) => (order[a.status]??2)-(order[b.status]??2));
+
+  el.innerHTML = `<div class="matches-grid">${ms.map(m => {
+    const isLive = m.status==='STATUS_IN_PROGRESS'||m.status==='STATUS_HALFTIME';
+    const isFin  = m.status==='STATUS_FINAL';
+    const isUp   = !isLive && !isFin;
+    const cls    = isLive?'s-live':isFin?'s-fin':'s-soon';
+    const label  = isLive?`🔴 EN DIRECT`:isFin?'Terminé':'À venir';
+    const score  = isUp ? fmtTime(m.date) : `${m.homeScore??0} - ${m.awayScore??0}`;
+
+    return `<div class="match-card animate-in">
+      <div class="card-comp">🏆 ${m.league||m.group||'Coupe du Monde 2026'}</div>
+      <div class="card-body">
+        <div class="card-team">
+          <div class="card-flag">${m.homeFlag||'🏳️'}</div>
+          <div class="card-name">${m.homeShort||m.homeTeam}</div>
+        </div>
+        <div class="card-mid">
+          <div class="card-score ${isLive?'live-glow':''}">${score}</div>
+          <span class="card-status ${cls}">${label}</span>
+          ${isUp?`<div class="card-time">📅 ${fmtDate(m.date)}</div>`:''}
+          ${m.venue?`<div class="card-time">📍 ${m.venue}</div>`:''}
+        </div>
+        <div class="card-team">
+          <div class="card-flag">${m.awayFlag||'🏳️'}</div>
+          <div class="card-name">${m.awayShort||m.awayTeam}</div>
+        </div>
       </div>
     </div>`;
   }).join('')}</div>`;
 }
 
-// ── PROCHAINS MATCHS FENNECS + AUTRES ────────────
-let upData={};
-async function fetchUpcoming(){
-  const el=document.getElementById('upcoming-con');
-  const tabs=document.getElementById('upcoming-tabs');
-  if(!el||!tabs) return;
-  el.innerHTML=ph('Chargement...','');
-  try{
-    const data=await api('upcoming');
-    const ms=data.matches||[];
+// ── PROCHAINS MATCHS ──────────────────────────────
+let upcomingData = {};
 
-    // Séparer matchs Algérie en premier
-    const algMs=ms.filter(m=>/alger|algérie/i.test(m.homeTeam)||/alger|algérie/i.test(m.awayTeam));
-    const othMs=ms.filter(m=>!/alger|algérie/i.test(m.homeTeam)&&!/alger|algérie/i.test(m.awayTeam));
+async function fetchUpcoming() {
+  const el = document.getElementById('upcoming-container');
+  const tabs = document.getElementById('upcoming-tabs');
+  if (!el||!tabs) return;
+  el.innerHTML = ph('Chargement...', '');
 
-    upData={};
-    if(algMs.length) upData['🇩🇿 Fennecs']=algMs;
-    othMs.forEach(m=>{
-      const k=m.league||'Autres';
-      if(!upData[k]) upData[k]=[];
-      upData[k].push(m);
+  try {
+    const data = await api('upcoming');
+    const ms = data.matches || [];
+
+    // Grouper: Fennecs en premier, puis par groupe
+    upcomingData = {};
+    const algMs = ms.filter(m => /alger/i.test(m.homeTeam)||/alger/i.test(m.awayTeam));
+    const othMs = ms.filter(m => !/alger/i.test(m.homeTeam)&&!/alger/i.test(m.awayTeam));
+
+    if (algMs.length) upcomingData['🇩🇿 Fennecs'] = algMs;
+    othMs.forEach(m => {
+      const k = m.group || 'CdM 2026';
+      if (!upcomingData[k]) upcomingData[k] = [];
+      upcomingData[k].push(m);
     });
-    Object.keys(upData).forEach(k=>{if(!upData[k].length) delete upData[k]});
-    const leagues=Object.keys(upData);
 
-    if(!leagues.length){
-      tabs.innerHTML='';
-      el.innerHTML=ph('Aucun match à venir','لا توجد مباريات قادمة');
+    const keys = Object.keys(upcomingData);
+    if (!keys.length) {
+      tabs.innerHTML = '';
+      el.innerHTML = ph('Aucun match à venir dans 7 jours', 'لا توجد مباريات قادمة');
       return;
     }
 
-    tabs.innerHTML=leagues.map((lg,i)=>{
-      const cnt=upData[lg].length;
-      const flag=upData[lg][0]?.leagueFlag||'⚽';
-      const lname=lg==='🇩🇿 Fennecs'?lg:`${flag} ${lg}`;
-      return `<button class="tab ${i===0?'on':''}" onclick="swUp('${lg.replace(/'/g,"\\'")}',this)">${lname} <span style="font-size:9px;opacity:.6">(${cnt})</span></button>`;
+    tabs.innerHTML = keys.map((k, i) => {
+      const cnt = upcomingData[k].length;
+      return `<button class="tab-btn ${i===0?'active':''}" onclick="switchUpcoming('${k.replace(/'/g,"\\'")}',this)">${k} <span style="font-size:9px;opacity:.6">(${cnt})</span></button>`;
     }).join('');
 
-    renderUp(leagues[0]);
-    clearInterval(window._upi);
-    let idx=0;
-    window._upi=setInterval(()=>{
-      idx=(idx+1)%leagues.length;
-      tabs.querySelectorAll('.tab').forEach(t=>t.classList.remove('on'));
-      tabs.querySelectorAll('.tab')[idx]?.classList.add('on');
-      renderUp(leagues[idx]);
-    },8000);
-  }catch(e){el.innerHTML=ph('Erreur chargement','')}
+    renderUpcoming(keys[0]);
+    clearInterval(window._upInt);
+    let idx = 0;
+    window._upInt = setInterval(() => {
+      idx = (idx+1) % keys.length;
+      tabs.querySelectorAll('.tab-btn').forEach(t=>t.classList.remove('active'));
+      tabs.querySelectorAll('.tab-btn')[idx]?.classList.add('active');
+      renderUpcoming(keys[idx]);
+    }, 8000);
+
+    // Update widget si pas de matchs aujourd'hui
+    if (algMs.length) updateAlgWidget(algMs);
+  } catch(e) {
+    el.innerHTML = ph('Erreur chargement', '');
+  }
 }
-window.swUp=function(lg,btn){
-  clearInterval(window._upi);
-  document.querySelectorAll('#upcoming-tabs .tab').forEach(t=>t.classList.remove('on'));
-  btn.classList.add('on');renderUp(lg);
+
+window.switchUpcoming = function(key, btn) {
+  clearInterval(window._upInt);
+  document.querySelectorAll('#upcoming-tabs .tab-btn').forEach(t=>t.classList.remove('active'));
+  btn.classList.add('active');
+  renderUpcoming(key);
 };
-function renderUp(lg){
-  const el=document.getElementById('upcoming-con');
-  const ms=(upData[lg]||[]).slice(0,8);
-  if(!ms.length){el.innerHTML=ph('Aucun match','');return}
-  el.innerHTML=`<div class="ul">${ms.map(m=>`
-    <div class="ui ani">
-      <div class="ud">
-        <div class="udy">${fd(m.date)}</div>
-        <div class="utm">${ft(m.date)}</div>
-        <div class="uve">${m.venue?`📍 ${m.venue}`:''}</div>
+
+function renderUpcoming(key) {
+  const el = document.getElementById('upcoming-container');
+  const ms = (upcomingData[key]||[]).slice(0, 8);
+  if (!ms.length) { el.innerHTML = ph('Aucun match', ''); return; }
+
+  el.innerHTML = `<div class="upcoming-list">${ms.map(m => `
+    <div class="upcoming-card animate-in">
+      <div class="uc-date">
+        <div class="uc-day">${fmtDate(m.date)}</div>
+        <div class="uc-time">${fmtTime(m.date)}</div>
+        ${m.venue?`<div class="uc-venue">📍 ${m.venue}</div>`:''}
       </div>
-      <div class="um">
-        <div class="umt">${cr(m.homeLogo,26)}<span>${m.homeShort||m.homeTeam||'?'}</span></div>
-        <div class="uvs">VS</div>
-        <div class="umt r"><span>${m.awayShort||m.awayTeam||'?'}</span>${cr(m.awayLogo,26)}</div>
+      <div class="uc-match">
+        <div class="uc-team">
+          <div class="uc-flag">${m.homeFlag||'🏳️'}</div>
+          <div class="uc-name">${m.homeShort||m.homeTeam||'?'}</div>
+        </div>
+        <div class="uc-vs">VS</div>
+        <div class="uc-team right">
+          <div class="uc-name">${m.awayShort||m.awayTeam||'?'}</div>
+          <div class="uc-flag">${m.awayFlag||'🏳️'}</div>
+        </div>
       </div>
+      <div class="uc-comp">${m.round||m.group||'CdM 2026'}</div>
     </div>`).join('')}</div>`;
 }
 
 // ── GROUPES CdM 2026 ──────────────────────────────
-async function fetchGroups(){
-  const el=document.getElementById('groups-con');
-  if(!el) return;
-  try{
-    const data=await api('groups');
-    const groups=data.groups||[];
-    el.innerHTML=groups.map(g=>`
-      <div class="gc ani">
-        <div class="gc-head">
-          <div class="gc-name">${g.name}</div>
-          <div class="gc-info">${g.teams.length} équipes</div>
+async function fetchGroups() {
+  const el = document.getElementById('groups-container');
+  if (!el) return;
+  try {
+    const data = await api('groups');
+    const groups = data.groups || [];
+    el.innerHTML = groups.map(g => `
+      <div class="group-card animate-in">
+        <div class="group-header">
+          <div class="group-name">${g.name}</div>
+          <div class="group-sub">${g.teams.length} équipes · Top 2 qualifiés</div>
         </div>
-        <table class="gt">
-          <thead><tr><th>#</th><th>Équipe</th><th>J</th><th>G</th><th>N</th><th>P</th><th>Buts</th><th>Pts</th></tr></thead>
-          <tbody>${g.teams.map((t,i)=>`
-            <tr class="${i<2?'q':''}">
-              <td class="grk ${i<2?'q':''}">${i+1}</td>
-              <td><div style="display:flex;align-items:center;gap:7px"><span style="font-size:18px">${t.flag}</span><strong>${t.name}</strong></div></td>
-              <td>${t.played}</td><td>${t.won}</td><td>${t.draw}</td><td>${t.lost}</td>
-              <td>${t.gf}:${t.ga}</td>
-              <td class="gpts">${t.pts}</td>
-            </tr>`).join('')}
+        <table class="group-table">
+          <thead>
+            <tr><th>#</th><th>Équipe</th><th>J</th><th>G</th><th>N</th><th>P</th><th>Buts</th><th>Pts</th></tr>
+          </thead>
+          <tbody>
+            ${g.teams.map((t, i) => `
+              <tr class="${i<2?'qualify':''}">
+                <td class="g-rank ${i<2?'q':i>=g.teams.length-0?'e':''}">${i+1}</td>
+                <td>
+                  <div class="g-team-cell">
+                    <span class="g-flag">${t.flag}</span>
+                    <strong class="g-name">${t.name}</strong>
+                  </div>
+                </td>
+                <td>${t.played}</td>
+                <td>${t.won}</td>
+                <td>${t.draw}</td>
+                <td>${t.lost}</td>
+                <td>${t.gf}:${t.ga}</td>
+                <td class="g-pts">${t.pts}</td>
+              </tr>`).join('')}
           </tbody>
         </table>
       </div>`).join('');
-  }catch(e){el.innerHTML=ph('Erreur groupes','')}
+  } catch(e) {
+    el.innerHTML = ph('Erreur chargement groupes', '');
+  }
 }
 
 // ── ARTICLES BENTO ────────────────────────────────
-async function fetchArticles(){
-  const el=document.getElementById('articles-con');
-  if(!el) return;
-  try{
-    const data=await api('articles');
-    const ms=data.matches||[];
-    if(!ms.length){el.innerHTML=fallbackArticles();return}
-    const cats=['Résultats','Analyse','Coupe du Monde','International','Fennecs'];
-    const icons=['⚽','🏆','🌍','🎯','🇩🇿'];
-    const sizes=['big','med','sml','sml','sml'];
-    el.innerHTML=ms.slice(0,5).map((m,i)=>{
-      const gh=m.homeScore??0,ga=m.awayScore??0;
-      const sc=`${gh} - ${ga}`;
-      const win=gh>ga?m.homeTeam:ga>gh?m.awayTeam:null;
-      const title=win?`${win} s'impose (${sc}) contre ${gh>ga?m.awayTeam:m.homeTeam}`:`Match nul (${sc}) — ${m.homeTeam} vs ${m.awayTeam}`;
-      const titleAr=win?`${win} يفوز (${sc}) على ${gh>ga?m.awayTeam:m.homeTeam}`:`تعادل (${sc}) بين ${m.homeTeam} و ${m.awayTeam}`;
-      const body=win?`${win} a dominé cette rencontre de ${m.league||'la compétition'} (${sc}). Une performance solide qui confirme la forme du moment.`:`Les deux équipes se sont neutralisées (${sc}) dans ce match de ${m.league||'la compétition'}.`;
-      return `<div class="bc ${sizes[i]||'sml'} ani">
-        <div class="bi">
-          <div class="bcat">${cats[i%cats.length]}</div>
-          <div style="font-size:${i===0?'62':'46'}px">${icons[i%icons.length]}</div>
-          <div class="bio"></div>
+async function fetchArticles() {
+  const el = document.getElementById('articles-container');
+  if (!el) return;
+  try {
+    const data = await api('articles');
+    const ms = data.matches || [];
+
+    if (!ms.length) { el.innerHTML = fallbackArticles(); return; }
+
+    const cats  = ['Résultats','Analyse','CdM 2026','International','Fennecs'];
+    const icons = ['⚽','🏆','🌍','🎯','🇩🇿'];
+    const sizes = ['span-7','span-5','span-4','span-4','span-4'];
+
+    el.innerHTML = ms.slice(0,5).map((m, i) => {
+      const gh = m.homeScore??0, ga = m.awayScore??0;
+      const score = `${gh} - ${ga}`;
+      const winner = gh>ga ? m.homeTeam : ga>gh ? m.awayTeam : null;
+      const title = winner
+        ? `${m.homeFlag||''} ${m.homeTeam} ${score} ${m.awayTeam} ${m.awayFlag||''} — ${winner} s'impose`
+        : `${m.homeFlag||''} ${m.homeTeam} ${score} ${m.awayTeam} ${m.awayFlag||''} — Match nul`;
+      const titleAr = winner
+        ? `${winner} يفوز بنتيجة ${score}`
+        : `تعادل ${score} بين الفريقين`;
+      const body = winner
+        ? `${winner} a remporté ce match de ${m.league||'la Coupe du Monde'} avec un score de ${score}. Une victoire importante dans la course à la qualification.`
+        : `Les deux équipes se sont séparées sur un score nul (${score}) dans ce match comptant pour ${m.league||'la Coupe du Monde 2026'}.`;
+
+      return `<div class="bento-card ${sizes[i]||'span-4'} animate-in">
+        <div class="bento-img">
+          <div class="bento-category">${cats[i%cats.length]}</div>
+          <div style="font-size:${i===0?'64':'48'}px">${icons[i%icons.length]}</div>
+          <div class="bento-teams">${m.homeFlag||'⚽'} <span style="font-size:12px;font-weight:700;color:var(--gold)">${score}</span> ${m.awayFlag||'⚽'}</div>
+          <div class="bento-img-overlay"></div>
         </div>
-        <div class="bb">
-          <div class="bt">${title}</div>
-          <div class="bar ar">${titleAr}</div>
-          ${i===0?`<div class="bex">${body}</div>`:''}
-          <div class="bm"><span>⏱ Hier</span><span>${m.leagueFlag||'⚽'} ${m.league||'Football'}</span></div>
+        <div class="bento-body">
+          <div class="bento-title">${title}</div>
+          <div class="bento-title-ar ar">${titleAr}</div>
+          ${i===0?`<div class="bento-excerpt">${body}</div>`:''}
+          <div class="bento-meta">
+            <span>⏱ Hier</span>
+            <span>🏆 ${m.league||'CdM 2026'}</span>
+            ${m.venue?`<span>📍 ${m.venue}</span>`:''}
+          </div>
         </div>
       </div>`;
     }).join('');
-  }catch(e){el.innerHTML=fallbackArticles()}
+
+  } catch(e) {
+    el.innerHTML = fallbackArticles();
+  }
 }
 
-function fallbackArticles(){
-  const arts=[
-    {sz:'big',cat:'Coupe du Monde 2026',ic:'🏆',t:'Coupe du Monde 2026 : tout ce qu\'il faut savoir',ar:'كأس العالم 2026: كل ما تحتاج معرفته',body:'La Coupe du Monde 2026 se tient aux États-Unis, au Canada et au Mexique. 32 nations s\'affrontent pour le titre. Suivez tous les scores en temps réel sur SportDZ.'},
-    {sz:'med',cat:'Fennecs 🇩🇿',ic:'🇩🇿',t:'Les Fennecs à la Coupe du Monde 2026',ar:'الخضر في كأس العالم 2026',body:''},
-    {sz:'sml',cat:'Analyse',ic:'📊',t:'Les stats de la Coupe du Monde 2026',ar:'إحصاءات كأس العالم 2026',body:''},
-    {sz:'sml',cat:'International',ic:'🌍',t:'Résultats et classements en direct',ar:'النتائج والترتيب مباشرة',body:''},
-    {sz:'sml',cat:'Scores',ic:'🎯',t:'Tous les scores du jour',ar:'جميع نتائج اليوم',body:''},
+function fallbackArticles() {
+  const arts = [
+    {sz:'span-7', cat:'Coupe du Monde 2026', ic:'🏆', t:'Coupe du Monde 2026 : 32 nations, 104 matchs, 1 champion', ar:'كأس العالم 2026: 32 منتخبًا و104 مباراة وبطل واحد', body:'La Coupe du Monde 2026 se déroule aux États-Unis, au Canada et au Mexique. Pour la première fois dans l\'histoire, la compétition accueille 48 équipes réparties en 12 groupes. Suivez tous les scores et résultats en temps réel sur SportDZ.'},
+    {sz:'span-5', cat:'🇩🇿 Fennecs', ic:'🇩🇿', t:'Algérie dans le Groupe J : Argentine, Jordanie, Autriche', ar:'الجزائر في المجموعة J مع الأرجنتين والأردن والنمسا', body:''},
+    {sz:'span-4', cat:'Groupe J', ic:'🌍', t:'Algérie 🇩🇿 vs Argentine 🇦🇷 — 16 juin 2026', ar:'الجزائر ضد الأرجنتين 16 يونيو', body:''},
+    {sz:'span-4', cat:'Fennecs', ic:'⚽', t:'Algérie 🇩🇿 vs Jordanie 🇯🇴 — 22 juin 2026', ar:'الجزائر ضد الأردن 22 يونيو', body:''},
+    {sz:'span-4', cat:'CdM 2026', ic:'🎯', t:'Algérie 🇩🇿 vs Autriche 🇦🇹 — 27 juin 2026', ar:'الجزائر ضد النمسا 27 يونيو', body:''},
   ];
-  return arts.map(a=>`<div class="bc ${a.sz} ani">
-    <div class="bi"><div class="bcat">${a.cat}</div><div style="font-size:${a.sz==='big'?'62':'46'}px">${a.ic}</div><div class="bio"></div></div>
-    <div class="bb"><div class="bt">${a.t}</div><div class="bar ar">${a.ar}</div>${a.body?`<div class="bex">${a.body}</div>`:''}<div class="bm"><span>⏱ Aujourd'hui</span><span>🌍 CdM 2026</span></div></div>
-  </div>`).join('');
+  return arts.map((a, i) => `
+    <div class="bento-card ${a.sz} animate-in">
+      <div class="bento-img">
+        <div class="bento-category">${a.cat}</div>
+        <div style="font-size:${i===0?'64':'48'}px">${a.ic}</div>
+        <div class="bento-img-overlay"></div>
+      </div>
+      <div class="bento-body">
+        <div class="bento-title">${a.t}</div>
+        <div class="bento-title-ar ar">${a.ar}</div>
+        ${a.body?`<div class="bento-excerpt">${a.body}</div>`:''}
+        <div class="bento-meta"><span>⏱ Aujourd'hui</span><span>🏆 CdM 2026</span></div>
+      </div>
+    </div>`).join('');
 }
 
 // ── CLASSEMENTS ───────────────────────────────────
-let stCache={};
-async function fetchStandings(){
-  const tabs=document.getElementById('standings-tabs');
-  if(!tabs) return;
-  tabs.innerHTML=LEAGUES_FD.map((l,i)=>`<button class="tab ${i===0?'on':''}" onclick="swSt('${l.code}',this)">${l.flag} ${l.name}</button>`).join('');
-  await loadSt(LEAGUES_FD[0].code);
-  clearInterval(window._sti);let idx=0;
-  window._sti=setInterval(async()=>{
-    idx=(idx+1)%LEAGUES_FD.length;
-    const ts=tabs.querySelectorAll('.tab');ts.forEach(t=>t.classList.remove('on'));ts[idx]?.classList.add('on');
-    await loadSt(LEAGUES_FD[idx].code);
-  },10000);
+let standingsCache = {};
+
+async function fetchStandings() {
+  const tabs = document.getElementById('standings-tabs');
+  if (!tabs) return;
+  tabs.innerHTML = LEAGUES_FD.map((l, i) => `
+    <button class="tab-btn ${i===0?'active':''}" onclick="switchStandings('${l.code}',this)">
+      ${l.flag} ${l.name}
+    </button>`).join('');
+  await loadStandings(LEAGUES_FD[0].code);
+  clearInterval(window._stInt);
+  let idx = 0;
+  window._stInt = setInterval(async () => {
+    idx = (idx+1) % LEAGUES_FD.length;
+    const ts = tabs.querySelectorAll('.tab-btn');
+    ts.forEach(t=>t.classList.remove('active'));
+    ts[idx]?.classList.add('active');
+    await loadStandings(LEAGUES_FD[idx].code);
+  }, 10000);
 }
-window.swSt=async function(code,btn){
-  clearInterval(window._sti);
-  document.querySelectorAll('#standings-tabs .tab').forEach(t=>t.classList.remove('on'));
-  btn.classList.add('on');await loadSt(code);
+
+window.switchStandings = async function(code, btn) {
+  clearInterval(window._stInt);
+  document.querySelectorAll('#standings-tabs .tab-btn').forEach(t=>t.classList.remove('active'));
+  btn.classList.add('active');
+  await loadStandings(code);
 };
-async function loadSt(code){
-  const tb=document.getElementById('standings-body');
-  if(!tb) return;
-  if(stCache[code]){renderSt(stCache[code]);return}
-  tb.innerHTML=`<tr><td colspan="9" style="text-align:center;padding:22px"><div class="spin" style="margin:0 auto;width:24px;height:24px;border-width:2px"></div></td></tr>`;
-  try{
-    const data=await api('standings',`&code=${code}`);
-    const table=data.standings?.find(s=>s.type==='TOTAL')?.table||[];
-    if(!table.length) throw new Error('Saison terminée');
-    stCache[code]=table;renderSt(table);
-  }catch(e){
-    tb.innerHTML=`<tr><td colspan="9" style="text-align:center;padding:18px;color:var(--muted);font-size:12px">📅 ${e.message}</td></tr>`;
+
+async function loadStandings(code) {
+  const tb = document.getElementById('standings-body');
+  if (!tb) return;
+  if (standingsCache[code]) { renderStandings(standingsCache[code]); return; }
+  tb.innerHTML = `<tr><td colspan="9" style="text-align:center;padding:24px"><div class="spinner" style="margin:0 auto;width:24px;height:24px;border-width:2px"></div></td></tr>`;
+  try {
+    const data = await api('standings', `&code=${code}`);
+    const table = data.standings?.find(s=>s.type==='TOTAL')?.table || [];
+    if (!table.length) throw new Error('Saison terminée');
+    standingsCache[code] = table;
+    renderStandings(table);
+  } catch(e) {
+    tb.innerHTML = `<tr><td colspan="9" style="text-align:center;padding:18px;color:var(--text3);font-size:12px">📅 ${e.message}</td></tr>`;
   }
 }
-function renderSt(table){
-  const tb=document.getElementById('standings-body');
-  const t3=document.getElementById('top3-con');
-  if(!tb) return;
-  const tot=table.length;
-  tb.innerHTML=table.slice(0,10).map(t=>{
-    const rc=t.position<=3?'top':t.position>=tot-2?'rel':'';
-    const form=(t.form||'').split(',').slice(-5).map(f=>f==='W'?'<div class="fd fw"></div>':f==='D'?'<div class="fd fd2"></div>':'<div class="fd fl"></div>').join('');
-    return `<tr class="ani ${t.position<=3?'hl':''}">
-      <td class="srk ${rc}">${t.position}</td>
-      <td><div style="display:flex;align-items:center;gap:7px">${cr(t.team?.crest,20)}<strong>${t.team?.shortName||t.team?.name}</strong></div></td>
+
+function renderStandings(table) {
+  const tb = document.getElementById('standings-body');
+  const t3 = document.getElementById('top3-container');
+  if (!tb) return;
+  const total = table.length;
+
+  tb.innerHTML = table.slice(0,10).map(t => {
+    const rc = t.position<=3?'top':t.position>=total-2?'rel':'';
+    const form = (t.form||'').split(',').slice(-5).map(f =>
+      f==='W'?'<div class="fd-dot fw"></div>':f==='D'?'<div class="fd-dot fd2"></div>':'<div class="fd-dot fl"></div>'
+    ).join('');
+    return `<tr class="animate-in ${t.position<=3?'highlight':''}">
+      <td class="s-rank ${rc}">${t.position}</td>
+      <td><div style="display:flex;align-items:center;gap:7px">
+        <img src="${t.team?.crest||''}" style="width:20px;height:20px;object-fit:contain" onerror="this.style.display='none'">
+        <strong>${t.team?.shortName||t.team?.name}</strong>
+      </div></td>
       <td>${t.playedGames}</td><td>${t.won}</td><td>${t.draw}</td><td>${t.lost}</td>
       <td>${t.goalsFor}:${t.goalsAgainst}</td>
-      <td class="spts">${t.points}</td>
-      <td><div class="fr">${form}</div></td>
+      <td class="s-pts">${t.points}</td>
+      <td><div class="form-dots">${form}</div></td>
     </tr>`;
   }).join('');
-  if(t3&&table.length>=3){
-    const atk=[...table].sort((a,b)=>b.goalsFor-a.goalsFor).slice(0,3);
-    const def=[...table].sort((a,b)=>a.goalsAgainst-b.goalsAgainst).slice(0,3);
-    t3.innerHTML=`
-      <div class="t3l">⚽ Meilleures Attaques</div>
-      ${atk.map((t,i)=>`<div class="t3i ani"><div class="t3r">${['🥇','🥈','🥉'][i]}</div>${cr(t.team?.crest,26)}<div><div class="t3n">${t.team?.shortName||t.team?.name}</div><div class="t3s">${t.goalsFor} buts</div></div><div class="t3v">${t.goalsFor}</div></div>`).join('')}
-      <div class="t3l" style="margin-top:12px">🛡️ Meilleures Défenses</div>
-      ${def.map((t,i)=>`<div class="t3i ani"><div class="t3r">${['🥇','🥈','🥉'][i]}</div>${cr(t.team?.crest,26)}<div><div class="t3n">${t.team?.shortName||t.team?.name}</div><div class="t3s">${t.goalsAgainst} enc.</div></div><div class="t3v">${t.goalsAgainst}</div></div>`).join('')}`;
+
+  if (t3 && table.length >= 3) {
+    const atk = [...table].sort((a,b)=>b.goalsFor-a.goalsFor).slice(0,3);
+    const def = [...table].sort((a,b)=>a.goalsAgainst-b.goalsAgainst).slice(0,3);
+    t3.innerHTML = `
+      <div class="top3-label">⚽ Meilleures Attaques</div>
+      ${atk.map((t,i)=>`<div class="top3-row animate-in">
+        <div class="top3-emoji">${['🥇','🥈','🥉'][i]}</div>
+        <img src="${t.team?.crest||''}" style="width:24px;height:24px;object-fit:contain" onerror="this.style.display='none'">
+        <div class="top3-info"><div class="top3-name">${t.team?.shortName||t.team?.name}</div><div class="top3-stat">${t.goalsFor} buts</div></div>
+        <div class="top3-val">${t.goalsFor}</div>
+      </div>`).join('')}
+      <div class="top3-label" style="margin-top:12px">🛡️ Meilleures Défenses</div>
+      ${def.map((t,i)=>`<div class="top3-row animate-in">
+        <div class="top3-emoji">${['🥇','🥈','🥉'][i]}</div>
+        <img src="${t.team?.crest||''}" style="width:24px;height:24px;object-fit:contain" onerror="this.style.display='none'">
+        <div class="top3-info"><div class="top3-name">${t.team?.shortName||t.team?.name}</div><div class="top3-stat">${t.goalsAgainst} enc.</div></div>
+        <div class="top3-val">${t.goalsAgainst}</div>
+      </div>`).join('')}`;
   }
 }
 
 // ── TICKER ────────────────────────────────────────
-function updateTicker(ms){
-  const el=document.getElementById('ticker');
-  if(!el||!ms.length) return;
-  const items=ms.slice(0,12).map(m=>{
-    const sc=(m.homeScore!==null&&m.homeScore!==undefined)?`${m.homeScore} - ${m.awayScore}`:ft(m.date);
-    return `<span class="ti">${m.leagueFlag||'⚽'} ${m.homeShort||m.homeTeam} — ${m.awayShort||m.awayTeam} <span class="ts">${sc}</span></span>`;
+function updateTicker(matches) {
+  const el = document.getElementById('ticker');
+  if (!el || !matches.length) return;
+  const items = matches.slice(0,12).map(m => {
+    const sc = (m.homeScore!==null&&m.homeScore!==undefined)
+      ? `${m.homeScore} - ${m.awayScore}` : fmtTime(m.date);
+    return `<span class="ticker-item">${m.homeFlag||'⚽'} ${m.homeShort||m.homeTeam} — ${m.awayShort||m.awayTeam} ${m.awayFlag||''} <span class="ticker-score">${sc}</span></span>`;
   });
-  el.innerHTML=[...items,...items].join('');
+  el.innerHTML = [...items,...items].join('');
 }
 
 // ── INIT ──────────────────────────────────────────
-document.addEventListener('DOMContentLoaded',()=>{
+document.addEventListener('DOMContentLoaded', () => {
   fetchScores();
   fetchUpcoming();
   fetchGroups();
   fetchArticles();
   fetchStandings();
-  setInterval(fetchScores,60000);
-  setInterval(fetchUpcoming,300000);
+  setInterval(fetchScores,   60000);
+  setInterval(fetchUpcoming, 300000);
 });
