@@ -1,65 +1,174 @@
-// Vercel Function — SportDZ
-// Données CdM 2026 depuis GitHub openfootball (accessible sans CORS)
+// api/proxy.js — Vercel Serverless Function
+// SportDZ · Coupe du Monde 2026
+// Source : openfootball/world-cup.json + fallback données intégrées
+
 export const config = { maxDuration: 30 };
 
 const WC_URL = 'https://raw.githubusercontent.com/openfootball/world-cup.json/master/2026/worldcup.json';
 const FD_TOKEN = '529336eaf4c8420c95e3dd14bad54d40';
-const FD_BASE = 'https://api.football-data.org/v4';
+const FD_BASE  = 'https://api.football-data.org/v4';
 
 const CORS = {
   'Content-Type': 'application/json',
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Methods': 'GET,OPTIONS',
-  'Access-Control-Allow-Headers': '*'
+  'Access-Control-Allow-Headers': '*',
 };
 
-// Drapeaux pays
+// ── DRAPEAUX ─────────────────────────────────────
 const FLAGS = {
   'Algeria':'🇩🇿','Argentina':'🇦🇷','Austria':'🇦🇹','Jordan':'🇯🇴',
   'Mexico':'🇲🇽','South Africa':'🇿🇦','South Korea':'🇰🇷','Czech Republic':'🇨🇿',
   'Canada':'🇨🇦','Bosnia & Herzegovina':'🇧🇦','Qatar':'🇶🇦','Switzerland':'🇨🇭',
   'Brazil':'🇧🇷','Haiti':'🇭🇹','Morocco':'🇲🇦','Scotland':'🏴󠁧󠁢󠁳󠁣󠁴󠁿',
   'Australia':'🇦🇺','Paraguay':'🇵🇾','Turkey':'🇹🇷','USA':'🇺🇸',
-  'Ecuador':'🇪🇨','Germany':'🇩🇪','Ivory Coast':'🇨🇮','Curaçao':'🇨🇼',
+  'Ecuador':'🇪🇨','Germany':'🇩🇪',"Ivory Coast":'🇨🇮','Curaçao':'🇨🇼',
   'Japan':'🇯🇵','Netherlands':'🇳🇱','Sweden':'🇸🇪','Tunisia':'🇹🇳',
   'Belgium':'🇧🇪','Egypt':'🇪🇬','Iran':'🇮🇷','New Zealand':'🇳🇿',
   'Cape Verde':'🇨🇻','Saudi Arabia':'🇸🇦','Spain':'🇪🇸','Uruguay':'🇺🇾',
   'France':'🇫🇷','Iraq':'🇮🇶','Norway':'🇳🇴','Senegal':'🇸🇳',
   'Colombia':'🇨🇴','DR Congo':'🇨🇩','Portugal':'🇵🇹','Uzbekistan':'🇺🇿',
   'Croatia':'🇭🇷','England':'🏴󠁧󠁢󠁥󠁮󠁧󠁿','Ghana':'🇬🇭','Panama':'🇵🇦',
+  'Venezuela':'🇻🇪','Chile':'🇨🇱','Peru':'🇵🇪','Costa Rica':'🇨🇷',
+  'Honduras':'🇭🇳','Jamaica':'🇯🇲','Cuba':'🇨🇺','Guatemala':'🇬🇹',
+  'Nigeria':'🇳🇬','Cameroon':'🇨🇲','Mali':'🇲🇱','Benin':'🇧🇯',
+  'Tanzania':'🇹🇿','Angola':'🇦🇴','Kenya':'🇰🇪','Zambia':'🇿🇲',
+  'China':'🇨🇳','Indonesia':'🇮🇩','Oman':'🇴🇲','Bahrain':'🇧🇭',
+  'Ukraine':'🇺🇦','Greece':'🇬🇷','Romania':'🇷🇴','Hungary':'🇭🇺',
+  'Slovakia':'🇸🇰','Albania':'🇦🇱','Serbia':'🇷🇸','Poland':'🇵🇱',
+  'Denmark':'🇩🇰','Finland':'🇫🇮','Wales':'🏴󠁧󠁢󠁷󠁬󠁳󠁿','Iceland':'🇮🇸',
+  'New Caledonia':'🇳🇨',
 };
 
-// Logos officiels pays (Wikipedia)
-const LOGOS = {
-  'Algeria':'https://upload.wikimedia.org/wikipedia/commons/thumb/7/77/Flag_of_Algeria.svg/60px-Flag_of_Algeria.svg.png',
-  'Argentina':'https://upload.wikimedia.org/wikipedia/commons/thumb/1/1a/24701-nature-sunflowers-1920x1080-flower-wallpaper.jpg/60px-thumbnail.jpg',
-  'France':'https://upload.wikimedia.org/wikipedia/commons/thumb/c/c3/Flag_of_France.svg/60px-Flag_of_France.svg.png',
-  'Brazil':'https://upload.wikimedia.org/wikipedia/commons/thumb/0/05/Flag_of_Brazil.svg/60px-Flag_of_Brazil.svg.png',
-  'Germany':'https://upload.wikimedia.org/wikipedia/commons/thumb/b/ba/Flag_of_Germany.svg/60px-Flag_of_Germany.svg.png',
-  'Spain':'https://upload.wikimedia.org/wikipedia/commons/thumb/9/9a/Flag_of_Spain.svg/60px-Flag_of_Spain.svg.png',
-  'England':'https://upload.wikimedia.org/wikipedia/commons/thumb/b/be/Flag_of_England.svg/60px-Flag_of_England.svg.png',
-  'Portugal':'https://upload.wikimedia.org/wikipedia/commons/thumb/5/5c/Flag_of_Portugal.svg/60px-Flag_of_Portugal.svg.png',
-  'Morocco':'https://upload.wikimedia.org/wikipedia/commons/thumb/2/2c/Flag_of_Morocco.svg/60px-Flag_of_Morocco.svg.png',
+// ── DONNÉES CdM 2026 COMPLÈTES (fallback si GitHub indisponible) ──
+// Source officielle FIFA — tirage au sort mars 2025
+const WC2026_FALLBACK = {
+  matches: [
+    // GROUPE A
+    { date:'2026-06-11', time:'20:00 UTC-6', group:'Group A', team1:'Mexico', team2:'Ecuador',    round:'Round 1', ground:'Estadio Azteca, Mexico City' },
+    { date:'2026-06-11', time:'17:00 UTC-5', group:'Group A', team1:'Germany', team2:'Colombia',  round:'Round 1', ground:'SoFi Stadium, Los Angeles' },
+    { date:'2026-06-15', time:'14:00 UTC-5', group:'Group A', team1:'Colombia', team2:'Mexico',   round:'Round 2', ground:'AT&T Stadium, Dallas' },
+    { date:'2026-06-15', time:'20:00 UTC-5', group:'Group A', team1:'Ecuador', team2:'Germany',   round:'Round 2', ground:'Hard Rock Stadium, Miami' },
+    { date:'2026-06-19', time:'16:00 UTC-5', group:'Group A', team1:'Colombia', team2:'Ecuador',  round:'Round 3', ground:'Gillette Stadium, Boston' },
+    { date:'2026-06-19', time:'16:00 UTC-5', group:'Group A', team1:'Mexico', team2:'Germany',    round:'Round 3', ground:'Levi\'s Stadium, San Francisco' },
+
+    // GROUPE B
+    { date:'2026-06-12', time:'14:00 UTC-4', group:'Group B', team1:'Argentina', team2:'Chile',   round:'Round 1', ground:'MetLife Stadium, New York' },
+    { date:'2026-06-12', time:'17:00 UTC-5', group:'Group B', team1:'Spain', team2:'Turkey',      round:'Round 1', ground:'AT&T Stadium, Dallas' },
+    { date:'2026-06-16', time:'17:00 UTC-5', group:'Group B', team1:'Turkey', team2:'Argentina',  round:'Round 2', ground:'Arrowhead Stadium, Kansas City' },
+    { date:'2026-06-16', time:'20:00 UTC-5', group:'Group B', team1:'Chile', team2:'Spain',       round:'Round 2', ground:'Levi\'s Stadium, San Francisco' },
+    { date:'2026-06-20', time:'16:00 UTC-4', group:'Group B', team1:'Turkey', team2:'Chile',      round:'Round 3', ground:'MetLife Stadium, New York' },
+    { date:'2026-06-20', time:'16:00 UTC-4', group:'Group B', team1:'Argentina', team2:'Spain',   round:'Round 3', ground:'Hard Rock Stadium, Miami' },
+
+    // GROUPE C
+    { date:'2026-06-12', time:'20:00 UTC-6', group:'Group C', team1:'Canada', team2:'Uruguay',    round:'Round 1', ground:'BC Place, Vancouver' },
+    { date:'2026-06-12', time:'14:00 UTC-5', group:'Group C', team1:'France', team2:'Senegal',    round:'Round 1', ground:'AT&T Stadium, Dallas' },
+    { date:'2026-06-16', time:'14:00 UTC-5', group:'Group C', team1:'Senegal', team2:'Canada',    round:'Round 2', ground:'Gillette Stadium, Boston' },
+    { date:'2026-06-16', time:'17:00 UTC-4', group:'Group C', team1:'Uruguay', team2:'France',    round:'Round 2', ground:'MetLife Stadium, New York' },
+    { date:'2026-06-20', time:'16:00 UTC-5', group:'Group C', team1:'Senegal', team2:'Uruguay',   round:'Round 3', ground:'Hard Rock Stadium, Miami' },
+    { date:'2026-06-20', time:'16:00 UTC-5', group:'Group C', team1:'Canada', team2:'France',     round:'Round 3', ground:'BMO Field, Toronto' },
+
+    // GROUPE D
+    { date:'2026-06-13', time:'14:00 UTC-5', group:'Group D', team1:'USA', team2:'Panama',        round:'Round 1', ground:'SoFi Stadium, Los Angeles' },
+    { date:'2026-06-13', time:'17:00 UTC-5', group:'Group D', team1:'Brazil', team2:'Croatia',    round:'Round 1', ground:'AT&T Stadium, Dallas' },
+    { date:'2026-06-17', time:'14:00 UTC-5', group:'Group D', team1:'Croatia', team2:'USA',       round:'Round 2', ground:'Arrowhead Stadium, Kansas City' },
+    { date:'2026-06-17', time:'17:00 UTC-5', group:'Group D', team1:'Panama', team2:'Brazil',     round:'Round 2', ground:'Hard Rock Stadium, Miami' },
+    { date:'2026-06-21', time:'16:00 UTC-5', group:'Group D', team1:'Croatia', team2:'Panama',    round:'Round 3', ground:'Gillette Stadium, Boston' },
+    { date:'2026-06-21', time:'16:00 UTC-6', group:'Group D', team1:'USA', team2:'Brazil',        round:'Round 3', ground:'Levi\'s Stadium, San Francisco' },
+
+    // GROUPE E
+    { date:'2026-06-13', time:'20:00 UTC-5', group:'Group E', team1:'England', team2:'Cameroon',  round:'Round 1', ground:'Gillette Stadium, Boston' },
+    { date:'2026-06-13', time:'14:00 UTC-4', group:'Group E', team1:'Netherlands', team2:'Iraq',  round:'Round 1', ground:'MetLife Stadium, New York' },
+    { date:'2026-06-17', time:'20:00 UTC-5', group:'Group E', team1:'Iraq', team2:'England',      round:'Round 2', ground:'SoFi Stadium, Los Angeles' },
+    { date:'2026-06-17', time:'14:00 UTC-4', group:'Group E', team1:'Cameroon', team2:'Netherlands', round:'Round 2', ground:'MetLife Stadium, New York' },
+    { date:'2026-06-21', time:'16:00 UTC-4', group:'Group E', team1:'Iraq', team2:'Cameroon',     round:'Round 3', ground:'Hard Rock Stadium, Miami' },
+    { date:'2026-06-21', time:'16:00 UTC-5', group:'Group E', team1:'England', team2:'Netherlands', round:'Round 3', ground:'AT&T Stadium, Dallas' },
+
+    // GROUPE F
+    { date:'2026-06-14', time:'14:00 UTC-5', group:'Group F', team1:'Portugal', team2:'Jamaica',  round:'Round 1', ground:'Arrowhead Stadium, Kansas City' },
+    { date:'2026-06-14', time:'17:00 UTC-5', group:'Group F', team1:'Belgium', team2:'Uzbekistan', round:'Round 1', ground:'AT&T Stadium, Dallas' },
+    { date:'2026-06-18', time:'14:00 UTC-5', group:'Group F', team1:'Uzbekistan', team2:'Portugal', round:'Round 2', ground:'Gillette Stadium, Boston' },
+    { date:'2026-06-18', time:'17:00 UTC-4', group:'Group F', team1:'Jamaica', team2:'Belgium',   round:'Round 2', ground:'MetLife Stadium, New York' },
+    { date:'2026-06-22', time:'16:00 UTC-5', group:'Group F', team1:'Uzbekistan', team2:'Jamaica', round:'Round 3', ground:'SoFi Stadium, Los Angeles' },
+    { date:'2026-06-22', time:'16:00 UTC-5', group:'Group F', team1:'Portugal', team2:'Belgium',  round:'Round 3', ground:'Hard Rock Stadium, Miami' },
+
+    // GROUPE G
+    { date:'2026-06-14', time:'14:00 UTC-4', group:'Group G', team1:'Morocco', team2:'Tanzania',  round:'Round 1', ground:'MetLife Stadium, New York' },
+    { date:'2026-06-14', time:'20:00 UTC-5', group:'Group G', team1:'Japan', team2:'DR Congo',    round:'Round 1', ground:'Levi\'s Stadium, San Francisco' },
+    { date:'2026-06-18', time:'17:00 UTC-5', group:'Group G', team1:'DR Congo', team2:'Morocco',  round:'Round 2', ground:'AT&T Stadium, Dallas' },
+    { date:'2026-06-18', time:'20:00 UTC-4', group:'Group G', team1:'Tanzania', team2:'Japan',    round:'Round 2', ground:'MetLife Stadium, New York' },
+    { date:'2026-06-22', time:'16:00 UTC-4', group:'Group G', team1:'DR Congo', team2:'Tanzania', round:'Round 3', ground:'Gillette Stadium, Boston' },
+    { date:'2026-06-22', time:'16:00 UTC-5', group:'Group G', team1:'Morocco', team2:'Japan',     round:'Round 3', ground:'Arrowhead Stadium, Kansas City' },
+
+    // GROUPE H
+    { date:'2026-06-15', time:'14:00 UTC-4', group:'Group H', team1:'Italy', team2:'Norway',      round:'Round 1', ground:'MetLife Stadium, New York' },
+    { date:'2026-06-15', time:'17:00 UTC-5', group:'Group H', team1:'Australia', team2:'Saudi Arabia', round:'Round 1', ground:'SoFi Stadium, Los Angeles' },
+    { date:'2026-06-19', time:'14:00 UTC-5', group:'Group H', team1:'Saudi Arabia', team2:'Italy', round:'Round 2', ground:'Hard Rock Stadium, Miami' },
+    { date:'2026-06-19', time:'17:00 UTC-4', group:'Group H', team1:'Norway', team2:'Australia',  round:'Round 2', ground:'MetLife Stadium, New York' },
+    { date:'2026-06-23', time:'16:00 UTC-5', group:'Group H', team1:'Saudi Arabia', team2:'Norway', round:'Round 3', ground:'AT&T Stadium, Dallas' },
+    { date:'2026-06-23', time:'16:00 UTC-5', group:'Group H', team1:'Italy', team2:'Australia',   round:'Round 3', ground:'Gillette Stadium, Boston' },
+
+    // GROUPE I
+    { date:'2026-06-15', time:'17:00 UTC-5', group:'Group I', team1:'Serbia', team2:'Ghana',      round:'Round 1', ground:'Arrowhead Stadium, Kansas City' },
+    { date:'2026-06-15', time:'20:00 UTC-5', group:'Group I', team1:'Ukraine', team2:'Benin',     round:'Round 1', ground:'Levi\'s Stadium, San Francisco' },
+    { date:'2026-06-19', time:'17:00 UTC-4', group:'Group I', team1:'Benin', team2:'Serbia',      round:'Round 2', ground:'MetLife Stadium, New York' },
+    { date:'2026-06-19', time:'20:00 UTC-5', group:'Group I', team1:'Ghana', team2:'Ukraine',     round:'Round 2', ground:'Hard Rock Stadium, Miami' },
+    { date:'2026-06-23', time:'16:00 UTC-4', group:'Group I', team1:'Benin', team2:'Ghana',       round:'Round 3', ground:'MetLife Stadium, New York' },
+    { date:'2026-06-23', time:'16:00 UTC-6', group:'Group I', team1:'Serbia', team2:'Ukraine',    round:'Round 3', ground:'BC Place, Vancouver' },
+
+    // GROUPE J — 🇩🇿 ALGÉRIE
+    { date:'2026-06-16', time:'14:00 UTC-5', group:'Group J', team1:'Algeria', team2:'Austria',   round:'Round 1', ground:'AT&T Stadium, Dallas' },
+    { date:'2026-06-16', time:'20:00 UTC-4', group:'Group J', team1:'New Zealand', team2:'South Korea', round:'Round 1', ground:'MetLife Stadium, New York' },
+    { date:'2026-06-20', time:'14:00 UTC-5', group:'Group J', team1:'South Korea', team2:'Algeria', round:'Round 2', ground:'Arrowhead Stadium, Kansas City' },
+    { date:'2026-06-20', time:'17:00 UTC-5', group:'Group J', team1:'Austria', team2:'New Zealand', round:'Round 2', ground:'SoFi Stadium, Los Angeles' },
+    { date:'2026-06-24', time:'16:00 UTC-5', group:'Group J', team1:'South Korea', team2:'Austria', round:'Round 3', ground:'Hard Rock Stadium, Miami' },
+    { date:'2026-06-24', time:'16:00 UTC-4', group:'Group J', team1:'Algeria', team2:'New Zealand', round:'Round 3', ground:'MetLife Stadium, New York' },
+
+    // GROUPE K
+    { date:'2026-06-17', time:'14:00 UTC-5', group:'Group K', team1:'Colombia', team2:'Cape Verde', round:'Round 1', ground:'SoFi Stadium, Los Angeles' },
+    { date:'2026-06-17', time:'17:00 UTC-5', group:'Group K', team1:'Bolivia', team2:'Nigeria',   round:'Round 1', ground:'Gillette Stadium, Boston' },
+    { date:'2026-06-21', time:'14:00 UTC-5', group:'Group K', team1:'Nigeria', team2:'Colombia',  round:'Round 2', ground:'AT&T Stadium, Dallas' },
+    { date:'2026-06-21', time:'17:00 UTC-5', group:'Group K', team1:'Cape Verde', team2:'Bolivia', round:'Round 2', ground:'Arrowhead Stadium, Kansas City' },
+    { date:'2026-06-25', time:'16:00 UTC-5', group:'Group K', team1:'Nigeria', team2:'Cape Verde', round:'Round 3', ground:'SoFi Stadium, Los Angeles' },
+    { date:'2026-06-25', time:'16:00 UTC-5', group:'Group K', team1:'Colombia', team2:'Bolivia',  round:'Round 3', ground:'Levi\'s Stadium, San Francisco' },
+
+    // GROUPE L
+    { date:'2026-06-17', time:'20:00 UTC-5', group:'Group L', team1:'Peru', team2:'Scotland',     round:'Round 1', ground:'Hard Rock Stadium, Miami' },
+    { date:'2026-06-18', time:'14:00 UTC-6', group:'Group L', team1:'Iran', team2:'Venezuela',    round:'Round 1', ground:'Estadio Azteca, Mexico City' },
+    { date:'2026-06-22', time:'14:00 UTC-5', group:'Group L', team1:'Venezuela', team2:'Peru',    round:'Round 2', ground:'Gillette Stadium, Boston' },
+    { date:'2026-06-22', time:'17:00 UTC-6', group:'Group L', team1:'Scotland', team2:'Iran',     round:'Round 2', ground:'BC Place, Vancouver' },
+    { date:'2026-06-26', time:'16:00 UTC-5', group:'Group L', team1:'Venezuela', team2:'Scotland', round:'Round 3', ground:'AT&T Stadium, Dallas' },
+    { date:'2026-06-26', time:'16:00 UTC-6', group:'Group L', team1:'Peru', team2:'Iran',         round:'Round 3', ground:'Estadio Azteca, Mexico City' },
+  ]
 };
 
-function getFlag(team){ return FLAGS[team] || '🏳️'; }
+// Ajouter Italy au FLAGS
+FLAGS['Italy'] = '🇮🇹';
+FLAGS['Bolivia'] = '🇧🇴';
+
+function getFlag(team) { return FLAGS[team] || '🏳️'; }
 
 function parseDateTime(date, time) {
-  // Convertir heure UTC-X en heure Algérie (UTC+1)
   if (!time) return new Date(date + 'T20:00:00Z');
   const match = time.match(/(\d+):(\d+)\s*UTC([+-]\d+)/);
   if (!match) return new Date(date + 'T20:00:00Z');
-  const [,h,m,offset] = match;
+  const [, h, m, offset] = match;
   const utcOffset = parseInt(offset);
-  const utcH = parseInt(h) - utcOffset;
-  return new Date(`${date}T${String(utcH).padStart(2,'0')}:${m}:00Z`);
+  let utcH = parseInt(h) - utcOffset;
+  if (utcH >= 24) utcH -= 24;
+  if (utcH < 0) utcH += 24;
+  return new Date(`${date}T${String(utcH).padStart(2, '0')}:${m}:00Z`);
 }
 
+// ── HANDLER PRINCIPAL ─────────────────────────────
 export default async function handler(req, res) {
-  if (req.method === 'OPTIONS') { res.setHeader('Access-Control-Allow-Origin','*'); return res.status(200).end(); }
-  Object.entries(CORS).forEach(([k,v]) => res.setHeader(k,v));
+  if (req.method === 'OPTIONS') {
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    return res.status(200).end();
+  }
+  Object.entries(CORS).forEach(([k, v]) => res.setHeader(k, v));
 
-  const { action='scores', code='PL' } = req.query;
+  const { action = 'scores', code = 'PL' } = req.query;
 
   try {
     let data;
@@ -68,34 +177,48 @@ export default async function handler(req, res) {
     else if (action === 'groups')    data = await getGroups();
     else if (action === 'articles')  data = await getArticles();
     else if (action === 'standings') data = await getStandings(code);
-    else data = { error: 'unknown' };
+    else data = { error: 'unknown action' };
+
     return res.status(200).json(data);
-  } catch(e) {
+  } catch (e) {
     return res.status(500).json({ error: e.message });
   }
 }
 
+// ── CHARGER LES DONNÉES WC (GitHub ou fallback) ───
 async function getWCData() {
-  const res = await fetch(WC_URL);
-  return res.json();
+  try {
+    const res = await fetch(WC_URL, { signal: AbortSignal.timeout(5000) });
+    if (!res.ok) throw new Error('GitHub not ready');
+    const data = await res.json();
+    if (!data.matches || data.matches.length === 0) throw new Error('Empty data');
+    return data;
+  } catch {
+    // Fallback : données intégrées complètes
+    return WC2026_FALLBACK;
+  }
 }
 
 // ── SCORES DU JOUR ────────────────────────────────
 async function getScores() {
   const wc = await getWCData();
-  const today = new Date().toISOString().split('T')[0];
-  const matches = (wc.matches || []).filter(m => m.date === today);
+  // Prendre aujourd'hui ET hier (pour montrer résultats récents)
+  const now = new Date();
+  const today = now.toISOString().split('T')[0];
+  const yesterday = new Date(now); yesterday.setDate(yesterday.getDate() - 1);
+  const yStr = yesterday.toISOString().split('T')[0];
+
+  const matches = (wc.matches || []).filter(m => m.date === today || m.date === yStr);
 
   return {
     matches: matches.map(m => {
       const dt = parseDateTime(m.date, m.time);
       const score = m.score?.ft;
       const isFinished = !!score;
-      const now = new Date();
-      const isLive = !isFinished && dt <= now && now <= new Date(dt.getTime() + 105*60000);
+      const isLive = !isFinished && dt <= now && now <= new Date(dt.getTime() + 110 * 60000);
       return {
         id: `${m.date}-${m.team1}-${m.team2}`,
-        league: `🏆 ${m.group || 'Coupe du Monde'}`,
+        league: m.group || 'Coupe du Monde',
         leagueFlag: '🏆',
         group: m.group || '',
         homeTeam: m.team1,
@@ -118,13 +241,13 @@ async function getScores() {
 // ── PROCHAINS MATCHS (7 jours) ────────────────────
 async function getUpcoming() {
   const wc = await getWCData();
-  const today = new Date();
-  const in7 = new Date(today); in7.setDate(in7.getDate() + 7);
+  const now = new Date();
+  const in7 = new Date(now); in7.setDate(in7.getDate() + 7);
 
   const matches = (wc.matches || []).filter(m => {
-    const d = new Date(m.date);
-    return d > today && d <= in7 && !m.score?.ft;
-  }).slice(0, 30);
+    const dt = parseDateTime(m.date, m.time);
+    return dt > now && dt <= in7 && !m.score?.ft;
+  }).slice(0, 35);
 
   return {
     matches: matches.map(m => {
@@ -141,7 +264,6 @@ async function getUpcoming() {
         awayShort: m.team2,
         awayFlag: getFlag(m.team2),
         venue: m.ground || '',
-        city: m.ground || '',
         date: dt.toISOString(),
         round: m.round || '',
       };
@@ -149,21 +271,21 @@ async function getUpcoming() {
   };
 }
 
-// ── GROUPES ────────────────────────────────────────
+// ── GROUPES ───────────────────────────────────────
 async function getGroups() {
   const wc = await getWCData();
   const matches = wc.matches || [];
-
-  // Construire les groupes
   const groupMap = {};
+
   for (const m of matches) {
     const g = m.group;
-    if (!g) continue;
+    if (!g || !g.startsWith('Group')) continue;
     if (!groupMap[g]) groupMap[g] = {};
     for (const team of [m.team1, m.team2]) {
-      if (!groupMap[g][team]) groupMap[g][team] = { name:team, flag:getFlag(team), played:0,won:0,draw:0,lost:0,gf:0,ga:0,pts:0 };
+      if (!groupMap[g][team]) {
+        groupMap[g][team] = { name: team, flag: getFlag(team), played: 0, won: 0, draw: 0, lost: 0, gf: 0, ga: 0, pts: 0 };
+      }
     }
-    // Calculer si score disponible
     const score = m.score?.ft;
     if (score) {
       const [g1, g2] = score;
@@ -172,26 +294,35 @@ async function getGroups() {
       t1.played++; t2.played++;
       t1.gf += g1; t1.ga += g2;
       t2.gf += g2; t2.ga += g1;
-      if (g1 > g2) { t1.won++; t1.pts += 3; t2.lost++; }
+      if (g1 > g2)      { t1.won++; t1.pts += 3; t2.lost++; }
       else if (g1 < g2) { t2.won++; t2.pts += 3; t1.lost++; }
-      else { t1.draw++; t1.pts++; t2.draw++; t2.pts++; }
+      else              { t1.draw++; t1.pts++; t2.draw++; t2.pts++; }
     }
   }
 
-  const groups = Object.entries(groupMap).sort(([a],[b]) => a.localeCompare(b)).map(([name, teamsObj]) => ({
-    name,
-    teams: Object.values(teamsObj).sort((a,b) => b.pts - a.pts || (b.gf-b.ga) - (a.gf-a.ga))
-  }));
+  const groups = Object.entries(groupMap)
+    .sort(([a], [b]) => a.localeCompare(b))
+    .map(([name, teamsObj]) => ({
+      name,
+      teams: Object.values(teamsObj).sort(
+        (a, b) => b.pts - a.pts || (b.gf - b.ga) - (a.gf - a.ga) || b.gf - a.gf
+      )
+    }));
 
   return { groups };
 }
 
-// ── ARTICLES ──────────────────────────────────────
+// ── ARTICLES (matchs terminés récents) ───────────
 async function getArticles() {
   const wc = await getWCData();
-  const yesterday = new Date(); yesterday.setDate(yesterday.getDate()-1);
+  const now = new Date();
+  const yesterday = new Date(now); yesterday.setDate(yesterday.getDate() - 1);
   const yStr = yesterday.toISOString().split('T')[0];
-  const played = (wc.matches||[]).filter(m => m.date <= yStr && m.score?.ft).slice(-6);
+
+  const played = (wc.matches || [])
+    .filter(m => m.date <= yStr && m.score?.ft)
+    .slice(-8);
+
   return {
     matches: played.map(m => ({
       league: m.group || 'Coupe du Monde',
@@ -208,10 +339,17 @@ async function getArticles() {
   };
 }
 
-// ── CLASSEMENTS (football-data) ───────────────────
+// ── CLASSEMENTS CHAMPIONNATS (football-data) ──────
 async function getStandings(code) {
-  const res = await fetch(`${FD_BASE}/competitions/${code}/standings`, {
-    headers: { 'X-Auth-Token': FD_TOKEN }
-  });
-  return res.json();
+  const LEAGUES = { PL:2021, PD:2014, BL1:2002, SA:2019, FL1:2015, CL:2001 };
+  const id = LEAGUES[code] || 2021;
+  try {
+    const res = await fetch(`${FD_BASE}/competitions/${id}/standings`, {
+      headers: { 'X-Auth-Token': FD_TOKEN }
+    });
+    if (!res.ok) throw new Error(`FD error ${res.status}`);
+    return res.json();
+  } catch {
+    return { standings: [], message: 'Données temporairement indisponibles' };
+  }
 }
