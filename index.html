@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>SportDZ — Coupe du Monde 2026</title>
 <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
 <style>
 :root {
   --fifa-blue:#0057B8;--fifa-purple:#7B2FBE;--fifa-red:#E8003D;
@@ -54,8 +55,6 @@ section{padding:80px 40px}
 .section-eyebrow{font-family:var(--font-body);font-size:9px;font-weight:600;letter-spacing:3px;text-transform:uppercase;color:var(--fifa-green);margin-bottom:14px}
 .section-title{font-family:var(--font-titles);font-size:clamp(28px,4vw,48px);font-weight:700;text-transform:uppercase;letter-spacing:-1px;line-height:1.05}
 .divider{height:1px;background:linear-gradient(90deg,transparent,var(--fifa-border),transparent);margin:0 40px}
-
-/* ALGERIA HERO WIDGET */
 .alg-hero{background:linear-gradient(135deg,#0a1a0a,#0d1520);border:1px solid rgba(0,214,115,0.3);border-radius:4px;padding:32px 40px;max-width:700px;margin:0 auto 40px;position:relative;overflow:hidden}
 .alg-hero::before{content:'🦅';position:absolute;right:20px;top:50%;transform:translateY(-50%);font-size:80px;opacity:.05;pointer-events:none}
 .alg-hero-label{font-size:9px;font-weight:600;letter-spacing:3px;text-transform:uppercase;color:var(--fifa-green);margin-bottom:16px;display:flex;align-items:center;gap:6px}
@@ -72,8 +71,6 @@ section{padding:80px 40px}
 .s-soon{background:rgba(0,214,115,0.1);color:var(--fifa-green)}
 .s-fin{background:rgba(74,80,104,0.2);color:var(--fifa-muted)}
 .alg-hero-meta{font-size:10px;color:var(--fifa-muted);margin-top:4px}
-
-/* NATIONS */
 .nations-section{background:var(--fifa-bg)}
 .nations-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:2px;max-width:1100px;margin:0 auto;background:var(--fifa-border);border:1px solid var(--fifa-border);border-radius:4px;overflow:hidden}
 .nation-card{background:var(--fifa-card-bg);padding:44px 32px;position:relative;overflow:hidden;cursor:pointer;transition:background 0.3s}
@@ -96,8 +93,6 @@ section{padding:80px 40px}
 .nation-stat{font-family:var(--font-body);font-size:12px;color:var(--fifa-muted);letter-spacing:0.5px;margin-bottom:20px;line-height:1.6}
 .nation-cities{display:flex;flex-wrap:wrap;gap:6px}
 .city-pill{font-family:var(--font-body);font-size:9px;font-weight:500;letter-spacing:1.5px;text-transform:uppercase;padding:4px 10px;border-radius:2px;border:1px solid var(--fifa-border);color:var(--fifa-muted)}
-
-/* MATCHES */
 .matches-section{background:#080A0F}
 .matches-container{max-width:1100px;margin:0 auto}
 .matches-tabs{display:flex;gap:2px;margin-bottom:28px;border-bottom:1px solid var(--fifa-border)}
@@ -120,8 +115,6 @@ section{padding:80px 40px}
 .match-date{font-size:12px;color:var(--fifa-muted)}
 .match-venue{font-size:11px;color:var(--fifa-muted)}
 .match-group{font-family:var(--font-body);font-size:9px;font-weight:600;letter-spacing:2px;text-transform:uppercase;color:var(--fifa-purple);border:1px solid rgba(123,47,190,0.35);padding:3px 8px;border-radius:2px}
-
-/* GROUPES COMPLETS */
 .groups-full-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;max-width:1100px;margin:0 auto}
 .group-card{background:var(--fifa-card-bg);border:1px solid var(--fifa-border);border-radius:4px;overflow:hidden;transition:border-color 0.2s}
 .group-card:hover{border-color:rgba(0,214,115,0.3)}
@@ -140,8 +133,6 @@ section{padding:80px 40px}
 .g-name{font-family:var(--font-titles);font-size:13px;font-weight:600}
 .g-pts{font-family:var(--font-titles);font-size:14px;font-weight:700;color:#fff}
 .g-alg{color:var(--fifa-green)!important}
-
-/* STANDINGS */
 .standings-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:20px;max-width:1100px;margin:40px auto 0}
 .standings-card{background:var(--fifa-card-bg);border:1px solid var(--fifa-border);border-radius:4px;overflow:hidden}
 .standings-card-header{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid var(--fifa-border)}
@@ -166,8 +157,6 @@ section{padding:80px 40px}
 .form-w{background:rgba(0,214,115,0.2);color:var(--fifa-green)}
 .form-d{background:rgba(255,255,255,0.07);color:#aaa}
 .form-l{background:rgba(232,0,61,0.2);color:var(--fifa-red)}
-
-/* UPCOMING */
 .upcoming-section{background:#06080D}
 .upcoming-tabs-row{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:20px;max-width:1100px;margin-left:auto;margin-right:auto}
 .up-tab{font-family:var(--font-body);font-size:10px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;padding:8px 16px;border:1px solid var(--fifa-border);border-radius:2px;color:var(--fifa-muted);cursor:pointer;background:transparent;transition:all 0.2s}
@@ -187,8 +176,6 @@ section{padding:80px 40px}
 .up-name{font-family:var(--font-titles);font-size:15px;font-weight:600;text-transform:uppercase;letter-spacing:.5px}
 .up-vs{font-family:var(--font-titles);font-size:14px;color:var(--fifa-muted);padding:0 10px}
 .up-group{font-size:9px;color:var(--fifa-purple);border:1px solid rgba(123,47,190,0.3);padding:2px 8px;border-radius:2px;letter-spacing:1px;white-space:nowrap}
-
-/* ARTICLES */
 .articles-section{background:var(--fifa-bg)}
 .bento-grid{display:grid;grid-template-columns:repeat(12,1fr);gap:12px;max-width:1100px;margin:0 auto}
 .bento-card{background:var(--fifa-card-bg);border:1px solid var(--fifa-border);border-radius:4px;overflow:hidden;cursor:pointer;transition:all 0.25s}
@@ -207,8 +194,6 @@ section{padding:80px 40px}
 .bento-title-ar{font-family:'Cairo',sans-serif;font-size:11px;color:var(--fifa-muted);direction:rtl;margin-bottom:8px}
 .bento-excerpt{font-size:11px;color:var(--fifa-muted);line-height:1.6;margin-bottom:8px;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
 .bento-meta{font-size:10px;color:var(--fifa-muted);display:flex;gap:10px;flex-wrap:wrap}
-
-/* CITIES */
 .cities-section{background:#06080D}
 .cities-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:1px;max-width:1100px;margin:0 auto;background:var(--fifa-border);border:1px solid var(--fifa-border);border-radius:4px;overflow:hidden}
 .city-card{background:var(--fifa-card-bg);padding:28px 20px;position:relative;overflow:hidden;cursor:pointer;transition:background 0.25s}
@@ -218,12 +203,9 @@ section{padding:80px 40px}
 .city-name{font-family:var(--font-titles);font-size:18px;font-weight:700;text-transform:uppercase;letter-spacing:-1px;color:var(--fifa-text);line-height:1.1;margin-bottom:6px}
 .city-country{font-family:var(--font-body);font-size:10px;color:var(--fifa-muted);letter-spacing:1.5px;text-transform:uppercase}
 .city-capacity{position:absolute;top:12px;right:12px;font-family:var(--font-body);font-size:9px;color:var(--fifa-border);letter-spacing:1px}
-
-/* LOADING */
 .loading-state{text-align:center;padding:48px;color:var(--fifa-muted)}
 .spinner{width:32px;height:32px;border:3px solid var(--fifa-border);border-top-color:var(--fifa-green);border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 14px}
 @keyframes spin{to{transform:rotate(360deg)}}
-
 footer{background:#06080D;border-top:1px solid var(--fifa-border);padding:40px 40px 28px}
 .footer-top{display:flex;align-items:flex-start;justify-content:space-between;gap:40px;margin-bottom:36px}
 .footer-brand{max-width:280px}
@@ -236,13 +218,11 @@ footer{background:#06080D;border-top:1px solid var(--fifa-border);padding:40px 4
 .footer-links ul li a:hover{color:#fff}
 .footer-bottom{display:flex;align-items:center;justify-content:space-between;border-top:1px solid var(--fifa-border);padding-top:20px;font-size:11px;color:var(--fifa-muted)}
 @media(max-width:900px){.nations-grid{grid-template-columns:1fr}.standings-grid{grid-template-columns:1fr}.groups-full-grid{grid-template-columns:repeat(2,1fr)}}
-@media(max-width:600px){nav{padding:0 16px;gap:16px}.nav-links{display:none}section{padding:60px 16px}.groups-full-grid{grid-template-columns:1fr}.bento-card.span7,.bento-card.span5,.bento-card.span4{grid-column:span 12}.footer-top{flex-direction:column}}
+@media(max-width:600px){nav{padding:0 16px;gap:16px}.nav-links{display:none}section{padding:60px 16px}.groups-full-grid{grid-column:span 1;grid-template-columns:1fr}.bento-card.span7,.bento-card.span5,.bento-card.span4{grid-column:span 12}.footer-top{flex-direction:column}}
 </style>
-<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
 
-<!-- NAV -->
 <nav>
   <div class="logo-text"><span class="grad">Sport</span><span style="color:#fff">DZ</span></div>
   <ul class="nav-links">
@@ -259,16 +239,14 @@ footer{background:#06080D;border-top:1px solid var(--fifa-border);padding:40px 4
   </div>
 </nav>
 
-<!-- HERO -->
 <section class="hero" id="hero">
   <div class="hero-bg-grid"></div>
   <div class="hero-bg-glow-b"></div>
   <div class="hero-bg-glow-r"></div>
   <div class="hero-eyebrow"><span class="eyebrow-dot"></span>11 Juin – 19 Juillet 2026 · USA · Canada · Mexique</div>
   <h1 class="hero-title"><span class="grad">Coupe du</span><br><span style="color:#fff">Monde 2026</span></h1>
-  <p class="hero-subtitle">48 nations. 16 villes. Un trophée. La plus grande Coupe du Monde de l'histoire. <span class="ar" style="font-family:'Cairo',sans-serif;direction:rtl;display:block;margin-top:6px">كأس العالم 2026 — الجزائر في المجموعة J</span></p>
+  <p class="hero-subtitle">48 nations. 16 villes. Un trophée. La plus grande Coupe du Monde de l'histoire. <span style="font-family:'Cairo',sans-serif;direction:rtl;display:block;margin-top:6px">كأس العالم 2026 — الجزائر في المجموعة J</span></p>
 
-  <!-- ALGERIA WIDGET -->
   <div class="alg-hero">
     <div class="alg-hero-label">🇩🇿 Prochain match des Fennecs — الخضر</div>
     <div class="alg-hero-match">
@@ -309,7 +287,6 @@ footer{background:#06080D;border-top:1px solid var(--fifa-border);padding:40px 4
 </section>
 <div class="divider"></div>
 
-<!-- NATIONS -->
 <section class="nations-section" id="nations">
   <div class="section-header">
     <div class="section-eyebrow">Trois Nations · Une Vision</div>
@@ -323,7 +300,6 @@ footer{background:#06080D;border-top:1px solid var(--fifa-border);padding:40px 4
 </section>
 <div class="divider"></div>
 
-<!-- GROUPES -->
 <section id="groupes" style="background:#080A0F;padding:80px 40px">
   <div class="section-header">
     <div class="section-eyebrow">Coupe du Monde 2026 · 12 Groupes · 48 Nations</div>
@@ -335,7 +311,6 @@ footer{background:#06080D;border-top:1px solid var(--fifa-border);padding:40px 4
 </section>
 <div class="divider"></div>
 
-<!-- SCORES DU JOUR -->
 <section class="matches-section" id="scores" style="padding:80px 40px">
   <div class="section-header">
     <div class="section-eyebrow">Résultats en direct · نتائج اليوم</div>
@@ -354,7 +329,6 @@ footer{background:#06080D;border-top:1px solid var(--fifa-border);padding:40px 4
 </section>
 <div class="divider"></div>
 
-<!-- PROCHAINS MATCHS -->
 <section class="upcoming-section" id="upcoming" style="padding:80px 40px">
   <div class="section-header">
     <div class="section-eyebrow">7 prochains jours · المباريات القادمة</div>
@@ -367,7 +341,6 @@ footer{background:#06080D;border-top:1px solid var(--fifa-border);padding:40px 4
 </section>
 <div class="divider"></div>
 
-<!-- ACTUALITES -->
 <section class="articles-section" id="actu" style="padding:80px 40px">
   <div class="section-header">
     <div class="section-eyebrow">Résultats & Analyses · أحدث الأخبار</div>
@@ -379,7 +352,6 @@ footer{background:#06080D;border-top:1px solid var(--fifa-border);padding:40px 4
 </section>
 <div class="divider"></div>
 
-<!-- CLASSEMENT -->
 <section id="standings" style="background:#080A0F;padding:80px 40px">
   <div class="section-header">
     <div class="section-eyebrow">Saison en cours · الترتيب</div>
@@ -403,7 +375,6 @@ footer{background:#06080D;border-top:1px solid var(--fifa-border);padding:40px 4
 </section>
 <div class="divider"></div>
 
-<!-- VILLES -->
 <section class="cities-section" id="cities" style="padding:80px 40px">
   <div class="section-header">
     <div class="section-eyebrow">16 Stades · 3 Pays</div>
@@ -441,18 +412,23 @@ footer{background:#06080D;border-top:1px solid var(--fifa-border);padding:40px 4
   </div>
   <div class="footer-bottom">
     <span>© 2026 SportDZ — Tous droits réservés</span>
-    <span class="ar" style="font-family:'Cairo',sans-serif">جميع الحقوق محفوظة · SportDZ 2026</span>
+    <span style="font-family:'Cairo',sans-serif">جميع الحقوق محفوظة · SportDZ 2026</span>
   </div>
 </footer>
 
 <script>
-// COUNTDOWN
 (function(){
   const kickoff=new Date('2026-06-11T19:00:00-05:00');
   function pad(n){return String(Math.max(0,n)).padStart(2,'0')}
   function tick(){
     const diff=kickoff-Date.now();
-    if(diff<=0){document.getElementById('cd-days').textContent='000';document.getElementById('cd-hours').textContent='00';document.getElementById('cd-mins').textContent='00';document.getElementById('cd-secs').textContent='00';return}
+    if(diff<=0){
+      document.getElementById('cd-days').textContent='000';
+      document.getElementById('cd-hours').textContent='00';
+      document.getElementById('cd-mins').textContent='00';
+      document.getElementById('cd-secs').textContent='00';
+      return;
+    }
     document.getElementById('cd-days').textContent=String(Math.floor(diff/86400000)).padStart(3,'0');
     document.getElementById('cd-hours').textContent=pad(Math.floor((diff%86400000)/3600000));
     document.getElementById('cd-mins').textContent=pad(Math.floor((diff%3600000)/60000));
@@ -460,8 +436,12 @@ footer{background:#06080D;border-top:1px solid var(--fifa-border);padding:40px 4
   }
   tick();setInterval(tick,1000);
 })();
-// NAV TABS
-document.querySelectorAll('.matches-tab').forEach(function(t){t.addEventListener('click',function(){document.querySelectorAll('.matches-tab').forEach(function(x){x.classList.remove('active')});t.classList.add('active')})});
+document.querySelectorAll('.matches-tab').forEach(function(t){
+  t.addEventListener('click',function(){
+    document.querySelectorAll('.matches-tab').forEach(function(x){x.classList.remove('active')});
+    t.classList.add('active');
+  });
+});
 </script>
 <script src="scores.js"></script>
 </body>
