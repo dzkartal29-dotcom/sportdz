@@ -1,6 +1,3 @@
-bash
-
-cat > /mnt/user-data/outputs/sportdz/scores.js << 'JSEOF'
 // SportDZ — Coupe du Monde 2026 (données réelles openfootball)
 const PROXY = '/api/proxy';
 
@@ -495,7 +492,3 @@ document.addEventListener('DOMContentLoaded', () => {
   setInterval(fetchScores,   60000);
   setInterval(fetchUpcoming, 300000);
 });
-JSEOF
-Output
-
-exit code 0
