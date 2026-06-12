@@ -313,78 +313,93 @@ function renderUpcoming(matches, byDate, dates, dateIdx) {
   }).join('');
 }
 
-// ── ARTICLES ─────────────────────────────────────
+// ── ARTICLES RSS TEMPS RÉEL ───────────────────────
 async function loadArticles() {
   const container = $('articles-container');
   if (!container) return;
 
+  // Afficher le skeleton pendant le chargement
+  container.innerHTML = Array(6).fill(0).map((_, i) => `
+    <div class="bento-card ${i === 0 ? 'span7' : i === 1 ? 'span5' : 'span4'}" style="pointer-events:none">
+      <div class="bento-img" style="background:linear-gradient(135deg,#0d1520,#111828)">
+        <div style="position:absolute;inset:0;background:linear-gradient(90deg,rgba(255,255,255,0.03) 25%,rgba(255,255,255,0.07) 50%,rgba(255,255,255,0.03) 75%);animation:shimmer 1.5s infinite;background-size:200% 100%"></div>
+      </div>
+      <div class="bento-body">
+        <div style="height:14px;background:rgba(255,255,255,0.06);border-radius:2px;margin-bottom:8px;width:${70 + i * 5}%"></div>
+        <div style="height:10px;background:rgba(255,255,255,0.04);border-radius:2px;margin-bottom:4px"></div>
+        <div style="height:10px;background:rgba(255,255,255,0.04);border-radius:2px;width:80%"></div>
+      </div>
+    </div>
+  `).join('');
+
   try {
     const res = await fetch(`${API}?action=articles`);
     const data = await res.json();
-    const matches = data.matches || [];
+    const articles = data.articles || [];
 
-    if (matches.length === 0) {
-      // Afficher les prochains matchs à la place si pas encore de résultats
+    if (articles.length === 0) {
       container.innerHTML = `
-        <div style="grid-column:span 12" class="loading-state">
-          <div style="font-size:28px;margin-bottom:10px">🏆</div>
-          La Coupe du Monde 2026 vient de commencer !<br>
-          <span style="font-size:11px">Les résultats apparaîtront ici après les premiers matchs.</span>
+        <div style="grid-column:span 12;text-align:center;padding:60px 20px">
+          <div style="font-size:40px;margin-bottom:16px">🏆</div>
+          <div style="font-family:var(--font-titles);font-size:20px;text-transform:uppercase;margin-bottom:8px">Coupe du Monde 2026 en cours !</div>
+          <div style="color:var(--fifa-muted);font-size:13px">Les articles apparaîtront ici · تحميل الأخبار...</div>
         </div>`;
       return;
     }
 
-    const titles = [
-      (m) => `${m.homeTeam} ${m.homeScore}–${m.awayScore} ${m.awayTeam} : Analyse du match`,
-      (m) => `Résumé : ${m.homeTeam} domine ${m.awayTeam} au ${m.venue?.split(',')[0] || 'stade'}`,
-      (m) => `${m.homeScore > m.awayScore ? m.homeTeam : m.homeScore < m.awayScore ? m.awayTeam : 'Match nul'} : les temps forts`,
-      (m) => `${m.group} · ${m.homeTeam} vs ${m.awayTeam} : bilan complet`,
-    ];
+    const spans = ['span7', 'span5', 'span4', 'span4', 'span4', 'span4', 'span4', 'span4', 'span4', 'span4', 'span4', 'span4'];
 
-    const subtitles = [
-      (m) => `ملخص المباراة: ${m.homeTeam} ضد ${m.awayTeam}`,
-    ];
-
-    const spans = ['span7', 'span5', 'span4', 'span4', 'span4', 'span4', 'span4', 'span4'];
-
-    container.innerHTML = matches.map((m, i) => {
+    container.innerHTML = articles.map((a, i) => {
       const span = spans[i] || 'span4';
-      const titleFn = titles[i % titles.length];
-      const isAlg = m.homeTeam === 'Algeria' || m.awayTeam === 'Algeria';
-      const winner = m.homeScore > m.awayScore ? m.homeTeam : m.homeScore < m.awayScore ? m.awayTeam : null;
+      const isAlg = /algeri|algér|fennec|خضر/i.test(a.title + a.excerpt);
+      const timeAgo = getTimeAgo(a.date);
+      const imgStyle = a.image
+        ? `background-image:url('${a.image}');background-size:cover;background-position:center`
+        : `background:linear-gradient(135deg,#0a1218,#111828)`;
+
       return `
-        <div class="bento-card ${span}" ${isAlg ? 'style="border-color:rgba(0,214,115,0.4)"' : ''}>
-          <div class="bento-img">
+        <a class="bento-card ${span}" href="${a.url}" target="_blank" rel="noopener noreferrer"
+           style="text-decoration:none;color:inherit${isAlg ? ';border-color:rgba(0,214,115,0.5)' : ''}">
+          <div class="bento-img" style="${imgStyle}">
             <div class="bento-img-overlay"></div>
-            <span class="bento-cat">${m.leagueFlag} ${m.league || 'CdM 2026'}</span>
-            <div class="bento-teams">
-              <span>${m.homeFlag}</span>
-              <span style="font-family:var(--font-titles);font-size:13px;color:var(--fifa-muted)"> ${m.homeScore}–${m.awayScore} </span>
-              <span>${m.awayFlag}</span>
-            </div>
+            <span class="bento-cat" style="background:${a.sourceColor || 'var(--fifa-green)'}${a.sourceColor && a.sourceColor !== '#00D673' ? ';color:#fff' : ';color:#000'}">
+              ${a.sourceFlag} ${a.source}
+            </span>
+            ${isAlg ? '<span style="position:absolute;top:12px;right:12px;z-index:1;font-size:20px;filter:drop-shadow(0 0 6px rgba(0,214,115,0.8))">🇩🇿</span>' : ''}
+            ${!a.image ? `<div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:${span === 'span7' ? '64' : '40'}px;opacity:0.15">⚽</div>` : ''}
           </div>
           <div class="bento-body">
-            <div class="bento-title">${titleFn(m)}</div>
-            <div class="bento-title-ar">${subtitles[0](m)}</div>
-            <p class="bento-excerpt">
-              ${winner
-                ? `Victoire de ${winner} lors de ce ${m.group || 'match de Coupe du Monde'} au score de ${m.homeScore}–${m.awayScore}. `
-                : `Match nul ${m.homeScore}–${m.awayScore} entre ${m.homeTeam} et ${m.awayTeam}. `
-              }
-              ${isAlg ? '🇩🇿 Les Fennecs sont en action dans ce groupe !' : ''}
-            </p>
+            <div class="bento-title" style="font-size:${span === 'span7' ? '17px' : '13px'}">${a.title}</div>
+            ${a.excerpt ? `<p class="bento-excerpt">${a.excerpt}</p>` : ''}
             <div class="bento-meta">
-              <span>📅 ${m.date}</span>
-              <span>📍 ${m.venue?.split(',')[0] || 'CdM 2026'}</span>
-              ${isAlg ? '<span style="color:var(--fifa-green)">🇩🇿 Algérie</span>' : ''}
+              <span>🕐 ${timeAgo}</span>
+              <span style="color:${a.sourceColor || 'var(--fifa-green)'}">↗ Lire l'article</span>
+              ${isAlg ? '<span style="color:var(--fifa-green);font-weight:600">🇩🇿 Algérie</span>' : ''}
             </div>
           </div>
-        </div>`;
+        </a>`;
     }).join('');
 
   } catch (e) {
-    container.innerHTML = `<div style="grid-column:span 12" class="loading-state">Erreur : ${e.message}</div>`;
+    container.innerHTML = `
+      <div style="grid-column:span 12" class="loading-state">
+        <div style="font-size:32px;margin-bottom:10px">📡</div>
+        Connexion aux flux d'actualités...<br>
+        <span style="font-size:11px;color:var(--fifa-muted)">${e.message}</span>
+      </div>`;
   }
+}
+
+// Convertir date en "il y a X minutes/heures"
+function getTimeAgo(iso) {
+  const diff = Date.now() - new Date(iso).getTime();
+  const mins = Math.floor(diff / 60000);
+  if (mins < 1)  return "À l'instant";
+  if (mins < 60) return `il y a ${mins} min`;
+  const hours = Math.floor(mins / 60);
+  if (hours < 24) return `il y a ${hours}h`;
+  const days = Math.floor(hours / 24);
+  return `il y a ${days}j`;
 }
 
 // ── CLASSEMENTS CHAMPIONNATS ──────────────────────
