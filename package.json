@@ -1,0 +1,9 @@
+{
+  "name": "sportdz-cdm2026",
+  "version": "1.0.0",
+  "description": "SportDZ - Coupe du Monde 2026",
+  "type": "module",
+  "engines": {
+    "node": "20.x"
+  }
+}
