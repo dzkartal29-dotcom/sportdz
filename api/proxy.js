@@ -312,31 +312,143 @@ async function getGroups() {
   return { groups };
 }
 
-// ── ARTICLES (matchs terminés récents) ───────────
+// ── ARTICLES — VRAIS FLUX RSS TEMPS RÉEL ─────────
+// Sources : L'Équipe, RFI Sport, BBC Sport, Goal.com, France Football
+// Toutes accessibles sans clé API via RSS2JSON (proxy gratuit)
+
+const RSS_FEEDS = [
+  {
+    name: "L'Équipe",
+    flag: '🇫🇷',
+    color: '#0057B8',
+    url: 'https://rss.app/feeds/coupe-du-monde.xml',
+    // Flux RSS L'Équipe Coupe du Monde via rss.app
+    direct: 'https://www.lequipe.fr/rss/actu_rss_Football.xml',
+  },
+  {
+    name: 'RFI Sport',
+    flag: '📻',
+    color: '#E8003D',
+    url: 'https://www.rfi.fr/fr/rss/sportsfr.xml',
+    direct: 'https://www.rfi.fr/fr/rss/sportsfr.xml',
+  },
+  {
+    name: 'BBC Sport',
+    flag: '🏴󠁧󠁢󠁥󠁮󠁧󠁿',
+    color: '#7B2FBE',
+    url: 'https://feeds.bbci.co.uk/sport/football/rss.xml',
+    direct: 'https://feeds.bbci.co.uk/sport/football/rss.xml',
+  },
+  {
+    name: 'Goal.com',
+    flag: '⚽',
+    color: '#00D673',
+    url: 'https://www.goal.com/feeds/fr/news',
+    direct: 'https://www.goal.com/feeds/fr/news',
+  },
+  {
+    name: 'Foot Mercato',
+    flag: '🌍',
+    color: '#C9A84C',
+    direct: 'https://www.footmercato.net/rss/actualites.xml',
+  },
+];
+
+// Proxy RSS2JSON public — convertit RSS en JSON (CORS-friendly)
+const RSS2JSON = 'https://api.rss2json.com/v1/api.json?rss_url=';
+
+// Mots-clés CdM 2026 pour filtrer les articles pertinents
+const WC_KEYWORDS = [
+  'coupe du monde','world cup','mondial','fifa','2026',
+  'algerie','algérie','fennecs','خضر',
+  'france','brazil','bresil','argentina','argentine',
+  'spain','espagne','germany','allemagne','england','angleterre',
+  'morocco','maroc','group','groupe','phase de groupes',
+  'qualif','but','goal','victoire','défaite','match',
+];
+
+function isRelevant(text) {
+  const t = (text || '').toLowerCase();
+  return WC_KEYWORDS.some(k => t.includes(k));
+}
+
+function extractImage(item) {
+  // Essayer plusieurs champs pour trouver une image
+  if (item.enclosure?.link) return item.enclosure.link;
+  if (item.thumbnail) return item.thumbnail;
+  // Chercher dans le contenu HTML
+  const content = item.content || item.description || '';
+  const imgMatch = content.match(/<img[^>]+src=["']([^"']+)["']/i);
+  if (imgMatch) return imgMatch[1];
+  return null;
+}
+
+function cleanText(html) {
+  return (html || '')
+    .replace(/<[^>]+>/g, ' ')
+    .replace(/&amp;/g, '&')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'")
+    .replace(/\s+/g, ' ')
+    .trim()
+    .slice(0, 200);
+}
+
+async function fetchRSSFeed(feed) {
+  try {
+    // Utiliser rss2json.com comme proxy gratuit (1000 req/jour)
+    const url = `${RSS2JSON}${encodeURIComponent(feed.direct)}&count=10`;
+    const res = await fetch(url, { signal: AbortSignal.timeout(8000) });
+    if (!res.ok) return [];
+    const data = await res.json();
+    if (data.status !== 'ok' || !data.items) return [];
+
+    return data.items
+      .filter(item => isRelevant(item.title) || isRelevant(item.description))
+      .slice(0, 4)
+      .map(item => ({
+        title: cleanText(item.title),
+        excerpt: cleanText(item.description || item.content),
+        image: extractImage(item) || data.feed?.image || null,
+        url: item.link || item.guid || '#',
+        date: item.pubDate ? new Date(item.pubDate).toISOString() : new Date().toISOString(),
+        source: feed.name,
+        sourceFlag: feed.flag,
+        sourceColor: feed.color,
+      }));
+  } catch {
+    return [];
+  }
+}
+
 async function getArticles() {
-  const wc = await getWCData();
-  const now = new Date();
-  const yesterday = new Date(now); yesterday.setDate(yesterday.getDate() - 1);
-  const yStr = yesterday.toISOString().split('T')[0];
+  // Lancer tous les flux RSS en parallèle
+  const results = await Promise.allSettled(
+    RSS_FEEDS.map(feed => fetchRSSFeed(feed))
+  );
 
-  const played = (wc.matches || [])
-    .filter(m => m.date <= yStr && m.score?.ft)
-    .slice(-8);
+  // Assembler tous les articles
+  const allArticles = [];
+  results.forEach(r => {
+    if (r.status === 'fulfilled') allArticles.push(...r.value);
+  });
 
-  return {
-    matches: played.map(m => ({
-      league: m.group || 'Coupe du Monde',
-      leagueFlag: '🏆',
-      homeTeam: m.team1,
-      homeFlag: getFlag(m.team1),
-      awayTeam: m.team2,
-      awayFlag: getFlag(m.team2),
-      homeScore: m.score.ft[0],
-      awayScore: m.score.ft[1],
-      venue: m.ground || '',
-      date: m.date,
-    }))
-  };
+  // Trier par date (plus récent en premier)
+  allArticles.sort((a, b) => new Date(b.date) - new Date(a.date));
+
+  // Dédupliquer par titre similaire
+  const seen = new Set();
+  const unique = allArticles.filter(a => {
+    const key = a.title.slice(0, 40).toLowerCase();
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+
+  // Si aucun article trouvé (RSS down), retourner tableau vide proprement
+  return { articles: unique.slice(0, 12) };
 }
 
 // ── CLASSEMENTS CHAMPIONNATS (football-data) ──────
