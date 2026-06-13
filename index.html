@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>SportDZ — Coupe du Monde 2026</title>
+<title>FootDZ — Coupe du Monde 2026 🇩🇿</title>
 <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
 <style>
@@ -206,7 +206,28 @@ section{padding:80px 40px}
 .loading-state{text-align:center;padding:48px;color:var(--fifa-muted)}
 .spinner{width:32px;height:32px;border:3px solid var(--fifa-border);border-top-color:var(--fifa-green);border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 14px}
 @keyframes spin{to{transform:rotate(360deg)}}
+
+/* TROPHÉES FILIGRANE */
+.trophy-bg {
+  position:fixed;pointer-events:none;z-index:0;opacity:0.04;
+}
+.trophy-top-right {
+  top:-60px;right:-60px;width:320px;
+}
+.trophy-bottom-left {
+  bottom:-60px;left:-60px;width:280px;transform:rotate(15deg);
+}
+.trophy-hero {
+  position:absolute;right:5%;top:50%;transform:translateY(-50%);
+  width:220px;opacity:0.06;pointer-events:none;
+}
+/* FIX EMOJI ICONS */
+.emoji-icon {
+  font-family: "Segoe UI Emoji","Apple Color Emoji","Noto Color Emoji",sans-serif;
+  font-style:normal;
+}
 @keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
+
 footer{background:#06080D;border-top:1px solid var(--fifa-border);padding:40px 40px 28px}
 .footer-top{display:flex;align-items:flex-start;justify-content:space-between;gap:40px;margin-bottom:36px}
 .footer-brand{max-width:280px}
@@ -224,8 +245,13 @@ footer{background:#06080D;border-top:1px solid var(--fifa-border);padding:40px 4
 </head>
 <body>
 
+
+<!-- TROPHÉES FILIGRANE -->
+<img src="wc2026-trophy.png" class="trophy-bg trophy-top-right" alt="">
+<img src="wc2026-white.png" class="trophy-bg trophy-bottom-left" alt="">
+
 <nav>
-  <div class="logo-text"><span class="grad">Sport</span><span style="color:#fff">DZ</span></div>
+  <div class="logo-text"><span class="grad">Foot</span><span style="color:#fff">DZ</span></div>
   <ul class="nav-links">
     <li><a href="#hero" class="active">Accueil</a></li>
     <li><a href="#nations">Nations</a></li>
@@ -244,12 +270,13 @@ footer{background:#06080D;border-top:1px solid var(--fifa-border);padding:40px 4
   <div class="hero-bg-grid"></div>
   <div class="hero-bg-glow-b"></div>
   <div class="hero-bg-glow-r"></div>
+  <img src="wc2026-logo.png" class="trophy-hero" alt="FIFA World Cup 2026">
   <div class="hero-eyebrow"><span class="eyebrow-dot"></span>11 Juin – 19 Juillet 2026 · USA · Canada · Mexique</div>
   <h1 class="hero-title"><span class="grad">Coupe du</span><br><span style="color:#fff">Monde 2026</span></h1>
   <p class="hero-subtitle">48 nations. 16 villes. Un trophée. La plus grande Coupe du Monde de l'histoire. <span style="font-family:'Cairo',sans-serif;direction:rtl;display:block;margin-top:6px">كأس العالم 2026 — الجزائر في المجموعة J</span></p>
 
   <div class="alg-hero">
-    <div class="alg-hero-label">🇩🇿 Prochain match des Fennecs — الخضر</div>
+    <div class="alg-hero-label">🇩🇿 Prochain match — الجزائر vs الأرجنتين</div>
     <div class="alg-hero-match">
       <div class="alg-hero-team">
         <div class="alg-hero-flag">🇩🇿</div>
@@ -258,18 +285,18 @@ footer{background:#06080D;border-top:1px solid var(--fifa-border);padding:40px 4
       <div class="alg-hero-center">
         <div class="alg-hero-score" id="alg-score">VS</div>
         <div class="alg-hero-status s-soon" id="alg-status">À venir</div>
-        <div class="alg-hero-meta" id="alg-date">Chargement...</div>
-        <div class="alg-hero-meta" id="alg-venue"></div>
+        <div class="alg-hero-meta" id="alg-date">16 Juin 2026 · 03h00 (Algérie)</div>
+        <div class="alg-hero-meta" id="alg-venue">📍 Arrowhead Stadium, Kansas City</div>
       </div>
       <div class="alg-hero-team">
-        <div class="alg-hero-flag" id="alg-opp-flag">❓</div>
-        <div class="alg-hero-name" id="alg-opp-name">Adversaire</div>
+        <div class="alg-hero-flag" id="alg-opp-flag">🇦🇷</div>
+        <div class="alg-hero-name" id="alg-opp-name">Argentine</div>
       </div>
     </div>
   </div>
 
   <div class="hero-actions">
-    <a href="#groupes" class="btn btn-green">🇩🇿 Groupe J — Algérie</a>
+    <a href="#groupes" class="btn btn-green">🇩🇿 Groupe J · vs 🇦🇷 Argentine</a>
     <a href="#upcoming" class="btn btn-blue">Programme</a>
     <a href="#groupes" class="btn btn-ghost">Tous les groupes</a>
   </div>
@@ -404,22 +431,22 @@ footer{background:#06080D;border-top:1px solid var(--fifa-border);padding:40px 4
 <footer>
   <div class="footer-top">
     <div class="footer-brand">
-      <div class="footer-logo"><span class="grad">Sport</span><span style="color:#fff">DZ</span> <span class="grad-green" style="font-size:14px">2026</span></div>
-      <p class="footer-desc">Le premier site algérien dédié à la Coupe du Monde 2026. Scores, groupes et actualités en temps réel. أول موقع جزائري لكأس العالم 2026.</p>
+      <div class="footer-logo"><span class="grad">Foot</span><span style="color:#fff">DZ</span> <span class="grad-green" style="font-size:14px">2026</span></div>
+      <p class="footer-desc">Le premier site algérien dédié à la Coupe du Monde 2026. 🇩🇿 الجزائر في المجموعة J Scores, groupes et actualités en temps réel. أول موقع جزائري لكأس العالم 2026.</p>
     </div>
     <div class="footer-links"><h4>Compétition</h4><ul><li><a href="#">Groupes</a></li><li><a href="#">Programme</a></li><li><a href="#">Classements</a></li><li><a href="#">Buteurs</a></li></ul></div>
     <div class="footer-links"><h4>Algérie 🇩🇿</h4><ul><li><a href="#">Groupe J</a></li><li><a href="#">Calendrier</a></li><li><a href="#">Effectif</a></li><li><a href="#">Historique</a></li></ul></div>
     <div class="footer-links"><h4>Site</h4><ul><li><a href="#">À propos</a></li><li><a href="#">Contact</a></li><li><a href="#">Publicité</a></li><li><a href="#">Newsletter</a></li></ul></div>
   </div>
   <div class="footer-bottom">
-    <span>© 2026 SportDZ — Tous droits réservés</span>
-    <span style="font-family:'Cairo',sans-serif">جميع الحقوق محفوظة · SportDZ 2026</span>
+    <span>© 2026 FootDZ — Tous droits réservés</span>
+    <span style="font-family:'Cairo',sans-serif">جميع الحقوق محفوظة · FootDZ 2026</span>
   </div>
 </footer>
 
 <script>
 (function(){
-  const kickoff=new Date('2026-06-11T19:00:00-05:00');
+  const kickoff=new Date('2026-06-16T21:00:00-05:00'); // Algérie vs Argentine
   function pad(n){return String(Math.max(0,n)).padStart(2,'0')}
   function tick(){
     const diff=kickoff-Date.now();
