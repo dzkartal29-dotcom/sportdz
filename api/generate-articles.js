@@ -33,7 +33,14 @@ async function redisLRange(key, start, end) {
   });
   const data = await res.json();
   if (!data.result) return [];
-  return data.result.map(i => { try { return JSON.parse(i); } catch { return null; } }).filter(Boolean);
+  return data.result.map(i => {
+    try {
+      const parsed = typeof i === 'string' ? JSON.parse(i) : i;
+      // Double parse si nécessaire
+      if (typeof parsed === 'string') return JSON.parse(parsed);
+      return parsed;
+    } catch { return null; }
+  }).filter(a => a && a.title);
 }
 
 async function redisTrim(key, start, end) {
