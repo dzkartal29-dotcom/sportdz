@@ -363,18 +363,18 @@ async function loadArticles() {
     container.innerHTML = articles.map((a, i) => {
       const span = spans[i] || 'span4';
       const isAlg = /algeri|algér|fennec|خضر/i.test(a.title + a.excerpt);
-      const timeAgo = getTimeAgo(a.date);
+      const timeAgo = getTimeAgo(a.published_at || a.date);
       const imgStyle = a.image
         ? `background-image:url('${a.image}');background-size:cover;background-position:center`
         : `background:linear-gradient(135deg,#0a1218,#111828)`;
 
       return `
-        <a class="bento-card ${span}" href="${a.url}" target="_blank" rel="noopener noreferrer"
+        <a class="bento-card ${span}" href="${a.source_url || a.url || '#'}" target="_blank" rel="noopener noreferrer"
            style="text-decoration:none;color:inherit${isAlg ? ';border-color:rgba(0,214,115,0.5)' : ''}">
           <div class="bento-img" style="${imgStyle}">
             <div class="bento-img-overlay"></div>
-            <span class="bento-cat" style="background:${a.sourceColor || 'var(--fifa-green)'}${a.sourceColor && a.sourceColor !== '#00D673' ? ';color:#fff' : ';color:#000'}">
-              ${a.sourceFlag} ${a.source}
+            <span class="bento-cat" style="background:${a.source_color || a.sourceColor || 'var(--fifa-green)'}${(a.source_color || a.sourceColor) && (a.source_color || a.sourceColor) !== '#00D673' ? ';color:#fff' : ';color:#000'}">
+              ${a.source_flag || a.sourceFlag || "⚽"} ${a.source_name || a.source || "Sport"}
             </span>
             ${isAlg ? '<span style="position:absolute;top:12px;right:12px;z-index:1;font-size:20px;filter:drop-shadow(0 0 6px rgba(0,214,115,0.8))">🇩🇿</span>' : ''}
             ${!a.image ? `<div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:${span === 'span7' ? '64' : '40'}px;opacity:0.15">⚽</div>` : ''}
@@ -384,7 +384,7 @@ async function loadArticles() {
             ${a.excerpt ? `<p class="bento-excerpt">${a.excerpt}</p>` : ''}
             <div class="bento-meta">
               <span>🕐 ${timeAgo}</span>
-              <span style="color:${a.sourceColor || 'var(--fifa-green)'}">↗ Lire l'article</span>
+              <span style="color:${a.source_color || a.sourceColor || 'var(--fifa-green)'}">↗ Lire l'article</span>
               ${isAlg ? '<span style="color:var(--fifa-green);font-weight:600">🇩🇿 Algérie</span>' : ''}
             </div>
           </div>
