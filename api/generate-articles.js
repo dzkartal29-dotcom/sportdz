@@ -113,7 +113,7 @@ async function fetchAllRSS() {
   const all = [];
   results.forEach(r => { if (r.status === 'fulfilled') all.push(...r.value); });
   return all
-    .filter(a => { const t = (a.title+' '+a.description).toLowerCase(); return KEYWORDS.some(k => t.includes(k)); })
+    .filter(a => a.title && a.title.length > 5)
     .sort((a, b) => new Date(b.pubDate) - new Date(a.pubDate))
     .slice(0, 15);
 }
