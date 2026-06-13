@@ -338,8 +338,12 @@ async function loadArticles() {
     try {
       const redisRes = await fetch('/api/generate-articles?action=list');
       const redisData = await redisRes.json();
-      articles = redisData.articles || [];
-    } catch {}
+      // Parser chaque article (peut être double-stringifié)
+      articles = (redisData.articles || []).map(a => {
+        if (typeof a === 'string') { try { return JSON.parse(a); } catch { return null; } }
+        return a;
+      }).filter(a => a && a.title);
+    } catch(e) { console.error('Redis error:', e); }
 
     // 2. Fallback : flux RSS directs si Redis vide
     if (articles.length === 0) {
