@@ -1,17 +1,23 @@
 {
   "functions": {
-    "api/proxy.js": {
-      "maxDuration": 30
-    }
+    "api/proxy.js": { "maxDuration": 30 },
+    "api/generate-articles.js": { "maxDuration": 60 }
   },
+  "crons": [
+    {
+      "path": "/api/generate-articles?action=generate",
+      "schedule": "0 */6 * * *"
+    }
+  ],
   "rewrites": [
-    { "source": "/api/proxy", "destination": "/api/proxy" }
+    { "source": "/api/proxy", "destination": "/api/proxy" },
+    { "source": "/api/generate-articles", "destination": "/api/generate-articles" }
   ],
   "headers": [
     {
       "source": "/api/(.*)",
       "headers": [
-        { "key": "Access-Control-Allow-Origin",  "value": "*" },
+        { "key": "Access-Control-Allow-Origin", "value": "*" },
         { "key": "Access-Control-Allow-Methods", "value": "GET, OPTIONS" },
         { "key": "Access-Control-Allow-Headers", "value": "*" }
       ]
