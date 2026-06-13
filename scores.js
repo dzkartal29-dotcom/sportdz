@@ -313,7 +313,7 @@ function renderUpcoming(matches, byDate, dates, dateIdx) {
   }).join('');
 }
 
-// ── ARTICLES RSS TEMPS RÉEL ───────────────────────
+// ── ARTICLES RSS + IA TEMPS RÉEL ─────────────────
 async function loadArticles() {
   const container = $('articles-container');
   if (!container) return;
@@ -333,9 +333,20 @@ async function loadArticles() {
   `).join('');
 
   try {
-    const res = await fetch(`${API}?action=articles`);
-    const data = await res.json();
-    const articles = data.articles || [];
+    // 1. Essayer Redis (articles générés par IA)
+    let articles = [];
+    try {
+      const redisRes = await fetch('/api/generate-articles?action=list');
+      const redisData = await redisRes.json();
+      articles = redisData.articles || [];
+    } catch {}
+
+    // 2. Fallback : flux RSS directs si Redis vide
+    if (articles.length === 0) {
+      const res = await fetch(`${API}?action=articles`);
+      const data = await res.json();
+      articles = data.articles || [];
+    }
 
     if (articles.length === 0) {
       container.innerHTML = `
