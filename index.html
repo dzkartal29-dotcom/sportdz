@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>FootDZ — Coupe du Monde 2026 🇩🇿</title>
 <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
 <style>
 :root {
   --fifa-blue:#0057B8;--fifa-purple:#7B2FBE;--fifa-red:#E8003D;
@@ -226,6 +226,14 @@ section{padding:80px 40px}
   font-family: "Segoe UI Emoji","Apple Color Emoji","Noto Color Emoji",sans-serif;
   font-style:normal;
 }
+
+/* STYLE ARABE */
+.ar { font-family:'Cairo',sans-serif; direction:rtl; text-align:right; }
+.ar-label { font-family:'Cairo',sans-serif; font-size:11px; color:var(--fifa-muted); direction:rtl; display:block; margin-top:3px; }
+.bilingual { display:flex; flex-direction:column; gap:2px; }
+.lang-toggle { display:flex; gap:6px; align-items:center; }
+.section-title-ar { font-family:'Cairo',sans-serif; font-size:clamp(16px,2.5vw,26px); color:var(--fifa-muted); direction:rtl; display:block; margin-top:6px; font-weight:600; }
+.eyebrow-ar { font-family:'Cairo',sans-serif; font-size:10px; direction:rtl; color:var(--fifa-green); display:block; margin-top:2px; }
 @keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
 
 footer{background:#06080D;border-top:1px solid var(--fifa-border);padding:40px 40px 28px}
@@ -253,16 +261,16 @@ footer{background:#06080D;border-top:1px solid var(--fifa-border);padding:40px 4
 <nav>
   <div class="logo-text"><span class="grad">Foot</span><span style="color:#fff">DZ</span></div>
   <ul class="nav-links">
-    <li><a href="#hero" class="active">Accueil</a></li>
-    <li><a href="#nations">Nations</a></li>
-    <li><a href="#groupes">Groupes</a></li>
-    <li><a href="#upcoming">Matchs</a></li>
-    <li><a href="#actu">Actualités</a></li>
-    <li><a href="#standings">Classement</a></li>
+    <li><a href="#hero" class="active"><span>Accueil</span><span class="ar-label">الرئيسية</span></a></li>
+    <li><a href="#nations"><span>Nations</span><span class="ar-label">الدول</span></a></li>
+    <li><a href="#groupes"><span>Groupes</span><span class="ar-label">المجموعات</span></a></li>
+    <li><a href="#upcoming"><span>Matchs</span><span class="ar-label">المباريات</span></a></li>
+    <li><a href="#actu"><span>Actualités</span><span class="ar-label">الأخبار</span></a></li>
+    <li><a href="#standings"><span>Classement</span><span class="ar-label">الترتيب</span></a></li>
   </ul>
   <div class="nav-right">
-    <a href="#upcoming" class="btn btn-ghost">Programme</a>
-    <a href="#" class="btn btn-green">🔴 Direct</a>
+    <a href="#upcoming" class="btn btn-ghost">Programme <span class="ar" style="font-size:9px">البرنامج</span></a>
+    <a href="#" class="btn btn-green">🔴 Direct <span class="ar" style="font-size:9px">مباشر</span></a>
   </div>
 </nav>
 
@@ -273,10 +281,11 @@ footer{background:#06080D;border-top:1px solid var(--fifa-border);padding:40px 4
   <img src="wc2026-logo.png" class="trophy-hero" alt="FIFA World Cup 2026">
   <div class="hero-eyebrow"><span class="eyebrow-dot"></span>11 Juin – 19 Juillet 2026 · USA · Canada · Mexique</div>
   <h1 class="hero-title"><span class="grad">Coupe du</span><br><span style="color:#fff">Monde 2026</span></h1>
-  <p class="hero-subtitle">48 nations. 16 villes. Un trophée. La plus grande Coupe du Monde de l'histoire. <span style="font-family:'Cairo',sans-serif;direction:rtl;display:block;margin-top:6px">كأس العالم 2026 — الجزائر في المجموعة J</span></p>
+  <div class="ar" style="font-family:'Cairo',sans-serif;font-size:clamp(20px,3vw,40px);font-weight:800;color:rgba(255,255,255,0.5);margin-bottom:8px;letter-spacing:0">كأس العالم 2026</div>
+  <p class="hero-subtitle">48 nations. 16 villes. Un trophée. La plus grande Coupe du Monde de l'histoire.<span class="ar" style="font-size:14px;margin-top:6px;display:block;color:var(--fifa-muted)">48 منتخباً · 16 مدينة · كأس واحدة · أكبر بطولة في التاريخ</span> <span style="font-family:'Cairo',sans-serif;direction:rtl;display:block;margin-top:6px">كأس العالم 2026 — الجزائر في المجموعة J</span></p>
 
   <div class="alg-hero">
-    <div class="alg-hero-label">🇩🇿 Prochain match — الجزائر vs الأرجنتين</div>
+    <div class="alg-hero-label">🇩🇿 المباراة القادمة — الجزائر vs الأرجنتين · Prochain match</div>
     <div class="alg-hero-match">
       <div class="alg-hero-team">
         <div class="alg-hero-flag">🇩🇿</div>
@@ -301,7 +310,7 @@ footer{background:#06080D;border-top:1px solid var(--fifa-border);padding:40px 4
     <a href="#groupes" class="btn btn-ghost">Tous les groupes</a>
   </div>
   <div class="countdown-wrap">
-    <span class="countdown-label">Coup d'envoi dans</span>
+    <span class="countdown-label">Coup d'envoi dans · <span class="ar" style="font-size:9px">انطلاق البطولة خلال</span></span>
     <div class="countdown-units">
       <div class="countdown-unit"><span class="countdown-num" id="cd-days">000</span><span class="countdown-sub">Jours</span></div>
       <span class="countdown-sep">:</span>
@@ -317,8 +326,9 @@ footer{background:#06080D;border-top:1px solid var(--fifa-border);padding:40px 4
 
 <section class="nations-section" id="nations">
   <div class="section-header">
-    <div class="section-eyebrow">Trois Nations · Une Vision</div>
+    <div class="section-eyebrow">Trois Nations · Une Vision <span class="eyebrow-ar">ثلاث دول · رؤية واحدة</span></div>
     <h2 class="section-title"><span class="grad">Nations</span> <span style="color:#fff">Hôtes</span></h2>
+    <span class="section-title-ar">الدول المضيفة</span>
   </div>
   <div class="nations-grid">
     <div class="nation-card canada"><span class="nation-flag">🇨🇦</span><div class="nation-name canada">Canada</div><p class="nation-stat">Première fois en tant qu'hôte principal. 2 villes, stades rénovés aux standards FIFA.</p><div class="nation-cities"><span class="city-pill">Vancouver</span><span class="city-pill">Toronto</span></div></div>
@@ -330,8 +340,9 @@ footer{background:#06080D;border-top:1px solid var(--fifa-border);padding:40px 4
 
 <section id="groupes" style="background:#080A0F;padding:80px 40px">
   <div class="section-header">
-    <div class="section-eyebrow">Coupe du Monde 2026 · 12 Groupes · 48 Nations</div>
+    <div class="section-eyebrow">Coupe du Monde 2026 · 12 Groupes · 48 Nations <span class="eyebrow-ar">12 مجموعة · 48 منتخب</span></div>
     <h2 class="section-title"><span style="color:#fff">Groupes</span> <span class="grad">CdM 2026</span></h2>
+    <span class="section-title-ar">مجموعات كأس العالم 2026</span>
   </div>
   <div class="groups-full-grid" id="groups-container">
     <div class="loading-state"><div class="spinner"></div>Chargement des groupes...</div>
@@ -341,8 +352,9 @@ footer{background:#06080D;border-top:1px solid var(--fifa-border);padding:40px 4
 
 <section class="matches-section" id="scores" style="padding:80px 40px">
   <div class="section-header">
-    <div class="section-eyebrow">Résultats en direct · نتائج اليوم</div>
+    <div class="section-eyebrow">Résultats en direct · <span class="ar">نتائج اليوم المباشرة</span></div>
     <h2 class="section-title"><span style="color:#fff">Scores</span> <span class="grad">du Jour</span></h2>
+    <span class="section-title-ar">نتائج اليوم</span>
   </div>
   <div class="matches-container">
     <div class="matches-tabs">
@@ -359,8 +371,9 @@ footer{background:#06080D;border-top:1px solid var(--fifa-border);padding:40px 4
 
 <section class="upcoming-section" id="upcoming" style="padding:80px 40px">
   <div class="section-header">
-    <div class="section-eyebrow">7 prochains jours · المباريات القادمة</div>
+    <div class="section-eyebrow">7 prochains jours · <span class="ar">المباريات القادمة</span></div>
     <h2 class="section-title"><span style="color:#fff">Prochains</span> <span class="grad">Matchs</span></h2>
+    <span class="section-title-ar">المباريات القادمة</span>
   </div>
   <div class="upcoming-tabs-row" id="upcoming-tabs"></div>
   <div id="upcoming-list">
@@ -371,8 +384,9 @@ footer{background:#06080D;border-top:1px solid var(--fifa-border);padding:40px 4
 
 <section class="articles-section" id="actu" style="padding:80px 40px">
   <div class="section-header">
-    <div class="section-eyebrow">Résultats & Analyses · أحدث الأخبار</div>
+    <div class="section-eyebrow">Résultats & Analyses · <span class="ar">أحدث الأخبار والتحليلات</span></div>
     <h2 class="section-title"><span style="color:#fff">Actualités</span> <span class="grad">CdM 2026</span></h2>
+    <span class="section-title-ar">أخبار كأس العالم 2026</span>
   </div>
   <div class="bento-grid" id="articles-container">
     <div style="grid-column:span 12" class="loading-state"><div class="spinner"></div>Chargement...</div>
@@ -382,8 +396,9 @@ footer{background:#06080D;border-top:1px solid var(--fifa-border);padding:40px 4
 
 <section id="standings" style="background:#080A0F;padding:80px 40px">
   <div class="section-header">
-    <div class="section-eyebrow">Saison en cours · الترتيب</div>
+    <div class="section-eyebrow">Saison en cours · <span class="ar">ترتيب الدوريات</span></div>
     <h2 class="section-title"><span style="color:#fff">Classements</span> <span class="grad">Championnats</span></h2>
+    <span class="section-title-ar">ترتيب البطولات</span>
   </div>
   <div style="max-width:1100px;margin:0 auto">
     <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:20px" id="standings-tabs"></div>
@@ -405,8 +420,9 @@ footer{background:#06080D;border-top:1px solid var(--fifa-border);padding:40px 4
 
 <section class="cities-section" id="cities" style="padding:80px 40px">
   <div class="section-header">
-    <div class="section-eyebrow">16 Stades · 3 Pays</div>
+    <div class="section-eyebrow">16 Stades · 3 Pays · <span class="ar">16 ملعباً · 3 دول</span></div>
     <h2 class="section-title"><span class="grad">Villes</span> <span style="color:#fff">Hôtes</span></h2>
+    <span class="section-title-ar">المدن المضيفة</span>
   </div>
   <div class="cities-grid">
     <div class="city-card"><span class="city-num">US 01</span><div class="city-name">New York</div><div class="city-country">États-Unis</div><span class="city-capacity">82,500</span></div>
@@ -432,11 +448,11 @@ footer{background:#06080D;border-top:1px solid var(--fifa-border);padding:40px 4
   <div class="footer-top">
     <div class="footer-brand">
       <div class="footer-logo"><span class="grad">Foot</span><span style="color:#fff">DZ</span> <span class="grad-green" style="font-size:14px">2026</span></div>
-      <p class="footer-desc">Le premier site algérien dédié à la Coupe du Monde 2026. 🇩🇿 الجزائر في المجموعة J Scores, groupes et actualités en temps réel. أول موقع جزائري لكأس العالم 2026.</p>
+      <p class="footer-desc">Le premier site algérien dédié à la Coupe du Monde 2026.<br><span class="ar" style="font-size:12px">أول موقع جزائري مخصص لكأس العالم 2026 🇩🇿 الجزائر في المجموعة J</span> Scores, groupes et actualités en temps réel. أول موقع جزائري لكأس العالم 2026.</p>
     </div>
-    <div class="footer-links"><h4>Compétition</h4><ul><li><a href="#">Groupes</a></li><li><a href="#">Programme</a></li><li><a href="#">Classements</a></li><li><a href="#">Buteurs</a></li></ul></div>
-    <div class="footer-links"><h4>Algérie 🇩🇿</h4><ul><li><a href="#">Groupe J</a></li><li><a href="#">Calendrier</a></li><li><a href="#">Effectif</a></li><li><a href="#">Historique</a></li></ul></div>
-    <div class="footer-links"><h4>Site</h4><ul><li><a href="#">À propos</a></li><li><a href="#">Contact</a></li><li><a href="#">Publicité</a></li><li><a href="#">Newsletter</a></li></ul></div>
+    <div class="footer-links"><h4>Compétition · <span class="ar" style="font-size:8px">البطولة</span></h4><ul><li><a href="#">Groupes</a></li><li><a href="#">Programme</a></li><li><a href="#">Classements</a></li><li><a href="#">Buteurs</a></li></ul></div>
+    <div class="footer-links"><h4>Algérie 🇩🇿 · <span class="ar" style="font-size:8px">الجزائر</span></h4><ul><li><a href="#">Groupe J</a></li><li><a href="#">Calendrier</a></li><li><a href="#">Effectif</a></li><li><a href="#">Historique</a></li></ul></div>
+    <div class="footer-links"><h4>Site · <span class="ar" style="font-size:8px">الموقع</span></h4><ul><li><a href="#">À propos</a></li><li><a href="#">Contact</a></li><li><a href="#">Publicité</a></li><li><a href="#">Newsletter</a></li></ul></div>
   </div>
   <div class="footer-bottom">
     <span>© 2026 FootDZ — Tous droits réservés</span>
