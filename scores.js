@@ -695,193 +695,191 @@ document.addEventListener('DOMContentLoaded', () => {
   setInterval(loadLiveWidget, 30000);
 });
 
+
 // ══════════════════════════════════════
 // LIVE BAR — Widget flottant mondial
+// Complètement indépendant du widget Algérie
 // ══════════════════════════════════════
 
-let liveBarMatches = [];
-let liveBarIndex   = 0;
-let liveBarTimer   = null;
-let cdInterval     = null;
+(function LiveBar() {
 
-const TEAM_AR = {
-  'Algeria':'الجزائر','Argentina':'الأرجنتين','France':'فرنسا',
-  'Brazil':'البرازيل','Spain':'إسبانيا','Germany':'ألمانيا',
-  'England':'إنجلترا','Portugal':'البرتغال','Morocco':'المغرب',
-  'USA':'الولايات المتحدة','Mexico':'المكسيك','Canada':'كندا',
-  'Turkey':'تركيا','Austria':'النمسا','Jordan':'الأردن',
-  'Netherlands':'هولندا','Croatia':'كرواتيا','Japan':'اليابان',
-  'Senegal':'السنغال','Uruguay':'أوروغواي','Colombia':'كولومبيا',
-  'Italy':'إيطاليا','Norway':'النرويج','Scotland':'اسكتلندا',
-  'Serbia':'صربيا','Ukraine':'أوكرانيا','Belgium':'بلجيكا',
-  'Denmark':'الدانمارك','Poland':'بولندا','Switzerland':'سويسرا',
-  'South Korea':'كوريا الجنوبية','Australia':'أستراليا',
-  'Ecuador':'الإكوادور','Tunisia':'تونس','Cameroon':'الكاميرون',
-  'Ghana':'غانا','Saudi Arabia':'السعودية','Iran':'إيران',
-  'Nigeria':'نيجيريا','Egypt':'مصر','Ivory Coast':'كوت ديفوار',
-  'DR Congo':'الكونغو','Cape Verde':'الرأس الأخضر',
-  'Uzbekistan':'أوزبكستان','Iraq':'العراق','Panama':'بنما',
-  'Jamaica':'جامايكا','Venezuela':'فنزويلا','Peru':'بيرو',
-  'Chile':'تشيلي','Bolivia':'بوليفيا','Paraguay':'باراغواي',
-  'Costa Rica':'كوستاريكا','Honduras':'هندوراس',
-  'New Zealand':'نيوزيلندا','Indonesia':'إندونيسيا',
-};
+  let matches = [];   // tous les matchs ESPN
+  let idx = 0;        // index actuel
+  let cdTimer = null; // countdown interval
 
-function arTeam(name) { return TEAM_AR[name] || name; }
+  const TEAM_AR = {
+    'Algeria':'الجزائر','Argentina':'الأرجنتين','France':'فرنسا',
+    'Brazil':'البرازيل','Spain':'إسبانيا','Germany':'ألمانيا',
+    'England':'إنجلترا','Portugal':'البرتغال','Morocco':'المغرب',
+    'USA':'الولايات المتحدة','Mexico':'المكسيك','Canada':'كندا',
+    'Turkey':'تركيا','Türkiye':'تركيا','Austria':'النمسا','Jordan':'الأردن',
+    'Netherlands':'هولندا','Croatia':'كرواتيا','Japan':'اليابان',
+    'Australia':'أستراليا','Senegal':'السنغال','Uruguay':'أوروغواي',
+    'Colombia':'كولومبيا','Italy':'إيطاليا','Norway':'النرويج',
+    'Scotland':'اسكتلندا','Serbia':'صربيا','Ukraine':'أوكرانيا',
+    'Belgium':'بلجيكا','Denmark':'الدانمارك','Poland':'بولندا',
+    'Sweden':'السويد','Switzerland':'سويسرا','South Korea':'كوريا الجنوبية',
+    'Ecuador':'الإكوادور','Tunisia':'تونس','Cameroon':'الكاميرون',
+    'Ghana':'غانا','Saudi Arabia':'السعودية','Iran':'إيران',
+    'Nigeria':'نيجيريا','Egypt':'مصر','Ivory Coast':'كوت ديفوار',
+    "Cote d'Ivoire":'كوت ديفوار','Curaçao':'كوراساو',
+    'DR Congo':'الكونغو','Cape Verde':'الرأس الأخضر',
+    'Uzbekistan':'أوزبكستان','Iraq':'العراق','Panama':'بنما',
+    'Jamaica':'جامايكا','Venezuela':'فنزويلا','Peru':'بيرو',
+    'Chile':'تشيلي','Bolivia':'بوليفيا','Paraguay':'باراغواي',
+    'New Zealand':'نيوزيلندا','Indonesia':'إندونيسيا',
+  };
 
-// Charger les matchs depuis l'API live
-async function fetchLiveBarData() {
-  try {
-    const res = await fetch('/api/live');
-    const data = await res.json();
-    const now = new Date();
-    const all = [];
+  function ar(name) { return TEAM_AR[name] || name; }
+  function pad(n) { return String(n).padStart(2,'0'); }
+  function el(id) { return document.getElementById(id); }
 
-    // 1. Matchs EN DIRECT
-    (data.live || []).forEach(m => all.push({ ...m, _state: 'live' }));
+  // ── FETCH ESPN ─────────────────────────────
+  async function fetch_matches() {
+    try {
+      const res = await fetch('/api/live');
+      if (!res.ok) return;
+      const data = await res.json();
+      const now = new Date();
+      const all = [];
 
-    // 2. Matchs à venir — triés par date
-    (data.upcoming || [])
-      .map(m => ({ ...m, _dt: new Date(m.date) }))
-      .filter(m => m._dt > now)
-      .sort((a,b) => a._dt - b._dt)
-      .slice(0,5)
-      .forEach(m => all.push({ ...m, _state: 'soon' }));
+      // 1. LIVE
+      (data.live || []).forEach(m => all.push({...m, _s:'live'}));
 
-    // 3. Matchs terminés récents
-    (data.recent || []).slice(0,2).forEach(m => all.push({ ...m, _state: 'done' }));
+      // 2. UPCOMING — triés par date
+      (data.upcoming || [])
+        .filter(m => new Date(m.date) > now)
+        .sort((a,b) => new Date(a.date) - new Date(b.date))
+        .slice(0,6)
+        .forEach(m => all.push({...m, _s:'soon'}));
 
-    if (all.length === 0) return;
+      // 3. RECENT — terminés
+      (data.recent || [])
+        .slice(0,2)
+        .forEach(m => all.push({...m, _s:'done'}));
 
-    liveBarMatches = all;
+      if (all.length === 0) return;
 
-    // Pointer vers live → sinon prochain → sinon terminé
-    const liveIdx = all.findIndex(m => m._state === 'live');
-    const soonIdx = all.findIndex(m => m._state === 'soon');
-    liveBarIndex = liveIdx >= 0 ? liveIdx : soonIdx >= 0 ? soonIdx : 0;
+      matches = all;
 
-    renderLiveBar();
+      // Auto-sélectionner : live > soon > done
+      const li = all.findIndex(m => m._s==='live');
+      const si = all.findIndex(m => m._s==='soon');
+      idx = li >= 0 ? li : si >= 0 ? si : 0;
 
-    // Si prochain match dans moins d'1h → re-check dans 30s
-    const next = all.find(m => m._state === 'soon');
-    if (next) {
-      const msLeft = new Date(next.date) - now;
-      if (msLeft > 0 && msLeft < 3600000) {
-        setTimeout(fetchLiveBarData, 30000);
-      }
+      render();
+    } catch(e) {
+      console.warn('LiveBar fetch error:', e.message);
     }
-
-  } catch(e) {
-    console.error('LiveBar error:', e);
   }
-}
 
-function renderLiveBar() {
-  if (liveBarMatches.length === 0) return;
-  const m = liveBarMatches[liveBarIndex];
-  if (!m) return;
+  // ── RENDER ─────────────────────────────────
+  function render() {
+    if (matches.length === 0) return;
+    const m = matches[idx];
+    if (!m) return;
 
-  // Éléments DOM
-  const badge    = $('lb-badge');
-  const homeFlag = $('lb-home-flag');
-  const homeName = $('lb-home-name');
-  const score    = $('lb-score');
-  const awayFlag = $('lb-away-flag');
-  const awayName = $('lb-away-name');
-  const clock    = $('lb-clock');
-  const cdEl     = $('lb-countdown');
-  const scorers  = $('lb-scorers');
-  const group    = $('lb-group');
-  const arabic   = $('lb-arabic');
-  const counter  = $('lb-counter');
+    // Arrêter countdown précédent
+    if (cdTimer) { clearInterval(cdTimer); cdTimer = null; }
 
-  if (!badge) return;
+    // Éléments
+    const badge   = el('lb-badge');
+    const hFlag   = el('lb-home-flag');
+    const hName   = el('lb-home-name');
+    const scoreEl = el('lb-score');
+    const aFlag   = el('lb-away-flag');
+    const aName   = el('lb-away-name');
+    const clockEl = el('lb-clock');
+    const cdEl    = el('lb-countdown');
+    const scorEl  = el('lb-scorers');
+    const grpEl   = el('lb-group');
+    const arEl    = el('lb-arabic');
+    const cntEl   = el('lb-counter');
 
-  // Flags et noms
-  homeFlag.textContent = m.homeFlag || '⚽';
-  homeName.textContent = m.homeTeam || '—';
-  awayFlag.textContent = m.awayFlag || '⚽';
-  awayName.textContent = m.awayTeam || '—';
-  group.textContent    = m.group || 'CdM 2026';
-  arabic.textContent   = `${arTeam(m.homeTeam)} vs ${arTeam(m.awayTeam)}`;
-  counter.textContent  = `${liveBarIndex+1}/${liveBarMatches.length}`;
+    if (!badge || !hFlag) return;
 
-  // Arrêter le compte à rebours précédent
-  if (cdInterval) { clearInterval(cdInterval); cdInterval = null; }
-  cdEl.textContent = '';
-  clock.textContent = '';
-
-  const state = m._state;
-
-  if (state === 'live') {
-    // ── EN DIRECT ──
-    badge.className = 'lb-badge is-live';
-    badge.textContent = '🔴 LIVE';
-    score.className = 'lb-score live';
-    score.textContent = `${m.homeScore ?? 0} – ${m.awayScore ?? 0}`;
-    clock.textContent = m.clock ? `${m.clock}'` : '';
+    // Équipes
+    hFlag.textContent = m.homeFlag || '⚽';
+    hName.textContent = m.homeTeam || '—';
+    aFlag.textContent = m.awayFlag || '⚽';
+    aName.textContent = m.awayTeam || '—';
+    grpEl.textContent = m.group || 'CdM 2026';
+    arEl.textContent  = `${ar(m.homeTeam)} ضد ${ar(m.awayTeam)}`;
+    cntEl.textContent = `${idx+1}/${matches.length}`;
+    clockEl.textContent = '';
     cdEl.textContent = '';
-    const goals = m.scorers || [];
-    scorers.innerHTML = goals.length > 0
-      ? goals.map(g => `<span class="lb-scorer">⚽ <span>${g.player}</span> ${g.clock}'</span>`).join('')
-      : `<span class="lb-scorer" style="color:var(--fifa-muted)">Aucun but · لا أهداف</span>`;
+    scorEl.innerHTML = '';
 
-  } else if (state === 'soon') {
-    // ── À VENIR — compte à rebours ──
-    badge.className = 'lb-badge is-soon';
-    score.className = 'lb-score soon';
-    score.textContent = 'VS';
-    scorers.innerHTML = '';
-    clock.textContent = '';
+    if (m._s === 'live') {
+      // ── EN DIRECT ──
+      badge.className   = 'lb-badge is-live';
+      badge.textContent = '🔴 LIVE';
+      scoreEl.className = 'lb-score live';
+      scoreEl.textContent = `${m.homeScore ?? 0} – ${m.awayScore ?? 0}`;
+      clockEl.textContent = m.clock ? `${m.clock}'` : '';
 
-    const target = new Date(m.date);
+      const goals = m.scorers || [];
+      scorEl.innerHTML = goals.length > 0
+        ? goals.map(g => `<span class="lb-scorer">⚽ <span>${g.player}</span> ${g.clock}'</span>`).join('')
+        : `<span class="lb-scorer" style="color:var(--fifa-muted)">0 but · لا أهداف</span>`;
 
-    function tickCD() {
-      const diff = target - Date.now();
-      if (!$('lb-countdown')) { clearInterval(cdInterval); return; }
-      if (diff <= 0) {
-        badge.textContent = '🔴 MAINTENANT';
-        badge.className = 'lb-badge is-live';
-        $('lb-countdown').textContent = '';
-        clearInterval(cdInterval);
-        setTimeout(fetchLiveBarData, 15000);
-        return;
+    } else if (m._s === 'soon') {
+      // ── BIENTÔT — compte à rebours ──
+      scoreEl.className   = 'lb-score soon';
+      scoreEl.textContent = 'VS';
+
+      const target = new Date(m.date);
+      function tick() {
+        const diff = target - Date.now();
+        const b = el('lb-badge');
+        const c = el('lb-countdown');
+        if (!b || !c) { clearInterval(cdTimer); return; }
+        if (diff <= 0) {
+          b.className   = 'lb-badge is-live';
+          b.textContent = '🔴 MAINTENANT';
+          c.textContent = '';
+          clearInterval(cdTimer);
+          setTimeout(fetch_matches, 20000);
+          return;
+        }
+        const h  = Math.floor(diff / 3600000);
+        const mn = Math.floor((diff % 3600000) / 60000);
+        const s  = Math.floor((diff % 60000) / 1000);
+        b.className   = 'lb-badge is-soon';
+        b.textContent = '⏱ BIENTÔT';
+        c.textContent = h > 0
+          ? `dans ${h}h ${pad(mn)}m`
+          : `dans ${pad(mn)}:${pad(s)}`;
       }
-      const h  = Math.floor(diff / 3600000);
-      const mn = Math.floor((diff % 3600000) / 60000);
-      const s  = Math.floor((diff % 60000) / 1000);
-      badge.textContent = '⏱ BIENTÔT';
-      $('lb-countdown').textContent = h > 0
-        ? `dans ${h}h ${String(mn).padStart(2,'0')}m`
-        : `dans ${String(mn).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+      tick();
+      cdTimer = setInterval(tick, 1000);
+
+    } else {
+      // ── TERMINÉ ──
+      badge.className   = 'lb-badge is-done';
+      badge.textContent = '✓ FIN';
+      scoreEl.className = 'lb-score done';
+      scoreEl.textContent = `${m.homeScore ?? 0} – ${m.awayScore ?? 0}`;
+      clockEl.textContent = 'FT';
+
+      const goals = m.scorers || [];
+      scorEl.innerHTML = goals.length > 0
+        ? goals.map(g => `<span class="lb-scorer">⚽ <span>${g.player}</span> ${g.clock}'</span>`).join('')
+        : `<span class="lb-scorer" style="color:var(--fifa-muted)">Résultat final · نهاية</span>`;
     }
-    tickCD();
-    cdInterval = setInterval(tickCD, 1000);
-
-  } else {
-    // ── TERMINÉ ──
-    badge.className = 'lb-badge is-done';
-    badge.textContent = '✓ TERMINÉ';
-    score.className = 'lb-score done';
-    score.textContent = `${m.homeScore ?? 0} – ${m.awayScore ?? 0}`;
-    clock.textContent = 'FIN';
-    cdEl.textContent = '';
-    const goals = m.scorers || [];
-    scorers.innerHTML = goals.map(g =>
-      `<span class="lb-scorer">⚽ <span>${g.player}</span> ${g.clock}'</span>`
-    ).join('') || `<span class="lb-scorer" style="color:var(--fifa-muted)">FT · نهاية المباراة</span>`;
   }
-}
 
-// Navigation entre matchs
-window.liveBarNav = function(dir) {
-  if (liveBarMatches.length === 0) return;
-  liveBarIndex = (liveBarIndex + dir + liveBarMatches.length) % liveBarMatches.length;
-  renderLiveBar();
-};
+  // ── NAVIGATION ─────────────────────────────
+  window.liveBarNav = function(dir) {
+    if (matches.length === 0) return;
+    idx = (idx + dir + matches.length) % matches.length;
+    render();
+  };
 
-// Init + refresh toutes les 30 secondes
-document.addEventListener('DOMContentLoaded', () => {
-  fetchLiveBarData();
-  setInterval(fetchLiveBarData, 30000);
-});
+  // ── INIT ───────────────────────────────────
+  document.addEventListener('DOMContentLoaded', function() {
+    fetch_matches();
+    setInterval(fetch_matches, 30000); // refresh toutes les 30s
+  });
+
+})(); // fin IIFE — complètement isolé
