@@ -234,6 +234,317 @@ section{padding:80px 40px}
 .lang-toggle { display:flex; gap:6px; align-items:center; }
 .section-title-ar { font-family:'Cairo',sans-serif; font-size:clamp(16px,2.5vw,26px); color:var(--fifa-muted); direction:rtl; display:block; margin-top:6px; font-weight:600; }
 .eyebrow-ar { font-family:'Cairo',sans-serif; font-size:10px; direction:rtl; color:var(--fifa-green); display:block; margin-top:2px; }
+
+/* ══════════════════════════════════════
+   WIDGET LIVE — Match en direct
+══════════════════════════════════════ */
+.live-widget-section {
+  background:linear-gradient(180deg,#06080D 0%,#080A0F 100%);
+  padding:60px 40px;position:relative;overflow:hidden;
+}
+.live-widget-section::before {
+  content:'';position:absolute;inset:0;
+  background:radial-gradient(ellipse at 50% 0%,rgba(232,0,61,0.08) 0%,transparent 60%);
+  pointer-events:none;
+}
+.live-widget-wrap {
+  max-width:900px;margin:0 auto;
+}
+
+/* MATCH EN DIRECT */
+.lw-live-card {
+  background:var(--fifa-card-bg);
+  border:1px solid rgba(232,0,61,0.4);
+  border-radius:6px;overflow:hidden;
+  animation:borderPulse 2s ease-in-out infinite;
+}
+@keyframes borderPulse {
+  0%,100%{border-color:rgba(232,0,61,0.4)}
+  50%{border-color:rgba(232,0,61,0.8)}
+}
+.lw-live-header {
+  background:rgba(232,0,61,0.1);
+  padding:10px 20px;
+  display:flex;align-items:center;justify-content:space-between;
+  border-bottom:1px solid rgba(232,0,61,0.2);
+}
+.lw-live-badge {
+  display:inline-flex;align-items:center;gap:6px;
+  font-size:10px;font-weight:700;letter-spacing:2px;
+  color:var(--fifa-red);font-family:var(--font-body);
+}
+.lw-live-badge::before {
+  content:'';width:8px;height:8px;background:var(--fifa-red);
+  border-radius:50%;animation:pulse 1s infinite;
+}
+.lw-live-badge-ar {
+  font-family:'Cairo',sans-serif;font-size:11px;
+  color:var(--fifa-red);direction:rtl;
+}
+.lw-clock {
+  font-family:var(--font-titles);font-size:22px;
+  color:var(--fifa-red);font-weight:700;
+}
+.lw-group {
+  font-size:9px;color:var(--fifa-purple);
+  border:1px solid rgba(123,47,190,0.3);
+  padding:2px 8px;border-radius:2px;letter-spacing:1px;
+}
+
+/* SCORE PRINCIPAL */
+.lw-scoreboard {
+  padding:28px 32px;
+  display:grid;grid-template-columns:1fr auto 1fr;
+  align-items:center;gap:20px;
+}
+.lw-team {
+  display:flex;flex-direction:column;align-items:center;gap:8px;
+}
+.lw-team.away { }
+.lw-team-flag { font-size:52px;line-height:1; }
+.lw-team-name {
+  font-family:var(--font-titles);font-size:20px;font-weight:700;
+  text-transform:uppercase;letter-spacing:1px;text-align:center;
+}
+.lw-team-name-ar {
+  font-family:'Cairo',sans-serif;font-size:12px;
+  color:var(--fifa-muted);direction:rtl;text-align:center;
+}
+.lw-score-center { text-align:center; }
+.lw-score {
+  font-family:var(--font-titles);font-size:72px;font-weight:700;
+  color:#fff;letter-spacing:8px;line-height:1;
+  text-shadow:0 0 30px rgba(232,0,61,0.3);
+}
+.lw-score-sep { color:var(--fifa-muted);font-size:48px; }
+.lw-halftime {
+  font-size:10px;color:var(--fifa-muted);letter-spacing:2px;
+  margin-top:6px;font-family:var(--font-body);
+}
+
+/* BUTEURS */
+.lw-scorers {
+  padding:0 32px 20px;
+  display:grid;grid-template-columns:1fr 1fr;gap:8px;
+}
+.lw-scorer-item {
+  display:flex;align-items:center;gap:8px;
+  padding:6px 10px;background:rgba(255,255,255,0.03);
+  border-radius:3px;border-left:2px solid var(--fifa-green);
+}
+.lw-scorer-icon { font-size:14px; }
+.lw-scorer-name {
+  font-family:var(--font-titles);font-size:13px;font-weight:600;
+}
+.lw-scorer-clock {
+  font-size:10px;color:var(--fifa-muted);margin-left:auto;
+  font-family:var(--font-body);
+}
+
+/* PROCHAIN MATCH — Compteur Algérie */
+.lw-next-card {
+  background:linear-gradient(135deg,#0a1a0a,#0d1520);
+  border:1px solid rgba(0,214,115,0.35);
+  border-radius:6px;overflow:hidden;
+  position:relative;
+}
+.lw-next-card::before {
+  content:'🦅';position:absolute;right:16px;top:50%;
+  transform:translateY(-50%);font-size:100px;opacity:0.04;
+  pointer-events:none;
+}
+.lw-next-header {
+  padding:12px 24px;
+  background:rgba(0,214,115,0.06);
+  border-bottom:1px solid rgba(0,214,115,0.15);
+  display:flex;align-items:center;justify-content:space-between;
+}
+.lw-next-label {
+  font-size:9px;font-weight:700;letter-spacing:2px;
+  text-transform:uppercase;color:var(--fifa-green);
+  display:flex;align-items:center;gap:6px;font-family:var(--font-body);
+}
+.lw-next-label::before {
+  content:'';width:6px;height:6px;background:var(--fifa-green);
+  border-radius:50%;animation:pulse 1.5s infinite;
+}
+.lw-next-label-ar {
+  font-family:'Cairo',sans-serif;font-size:11px;color:var(--fifa-green);
+}
+.lw-next-body {
+  padding:24px 32px;
+  display:grid;grid-template-columns:1fr auto 1fr;
+  align-items:center;gap:16px;
+}
+.lw-next-vs {
+  font-family:var(--font-titles);font-size:20px;
+  color:var(--fifa-muted);text-align:center;
+}
+
+/* COMPTEUR */
+.lw-countdown {
+  padding:16px 32px 24px;
+  display:flex;justify-content:center;gap:0;
+}
+.lw-cd-unit {
+  text-align:center;padding:0 16px;
+  border-right:1px solid var(--fifa-border);
+}
+.lw-cd-unit:last-child { border-right:none; }
+.lw-cd-num {
+  font-family:var(--font-titles);font-size:42px;font-weight:700;
+  color:var(--fifa-green);line-height:1;display:block;
+}
+.lw-cd-label {
+  font-size:8px;font-weight:600;letter-spacing:2px;
+  text-transform:uppercase;color:var(--fifa-muted);
+  display:block;margin-top:4px;font-family:var(--font-body);
+}
+.lw-cd-label-ar {
+  font-family:'Cairo',sans-serif;font-size:9px;
+  color:var(--fifa-muted);display:block;direction:rtl;
+}
+.lw-venue {
+  text-align:center;font-size:11px;color:var(--fifa-muted);
+  padding-bottom:16px;
+}
+
+/* NO LIVE */
+.lw-no-live {
+  text-align:center;padding:20px;
+  font-size:12px;color:var(--fifa-muted);
+}
+
+@media(max-width:600px) {
+  .lw-scoreboard{grid-template-columns:1fr auto 1fr;gap:10px;padding:20px 16px}
+  .lw-score{font-size:48px}
+  .lw-team-flag{font-size:36px}
+  .lw-scorers{grid-template-columns:1fr;padding:0 16px 16px}
+  .lw-next-body{padding:16px}
+  .lw-countdown{padding:12px 16px 20px}
+  .lw-cd-num{font-size:30px}
+}
+
+/* ══════════════════════════════════════
+   LIVE BAR — Widget flottant mondial
+══════════════════════════════════════ */
+.live-bar {
+  position:fixed;top:64px;left:0;right:0;z-index:99;
+  background:rgba(8,10,15,0.97);
+  border-bottom:1px solid rgba(232,0,61,0.3);
+  backdrop-filter:blur(12px);
+  padding:0 24px;height:44px;
+  display:flex;align-items:center;gap:16px;
+  transition:all 0.3s;
+}
+.live-bar.hidden { transform:translateY(-100%);opacity:0; }
+
+/* Badge */
+.lb-badge {
+  display:inline-flex;align-items:center;gap:5px;
+  font-size:9px;font-weight:700;letter-spacing:2px;
+  text-transform:uppercase;font-family:var(--font-body);
+  white-space:nowrap;
+}
+.lb-badge.is-live { color:var(--fifa-red); }
+.lb-badge.is-soon { color:var(--fifa-green); }
+.lb-badge.is-done { color:var(--fifa-muted); }
+.lb-badge.is-live::before {
+  content:'';width:6px;height:6px;background:var(--fifa-red);
+  border-radius:50%;animation:pulse 1s infinite;
+}
+.lb-badge.is-soon::before {
+  content:'⏱';font-size:10px;
+}
+.lb-badge.is-done::before { content:'✓ '; }
+
+/* Match */
+.lb-match {
+  display:flex;align-items:center;gap:10px;flex:1;
+  min-width:0;overflow:hidden;
+}
+.lb-team {
+  display:flex;align-items:center;gap:5px;
+  font-family:var(--font-titles);font-size:13px;font-weight:600;
+  text-transform:uppercase;letter-spacing:.5px;white-space:nowrap;
+}
+.lb-flag { font-size:16px; }
+.lb-score {
+  font-family:var(--font-titles);font-size:16px;font-weight:700;
+  padding:2px 10px;border-radius:2px;white-space:nowrap;
+}
+.lb-score.live {
+  color:var(--fifa-green);
+  border:1px solid rgba(0,214,115,0.4);
+  background:rgba(0,214,115,0.07);
+}
+.lb-score.soon {
+  color:var(--fifa-muted);
+  border:1px solid var(--fifa-border);
+}
+.lb-score.done {
+  color:#fff;
+  border:1px solid var(--fifa-border);
+  background:rgba(255,255,255,0.04);
+}
+.lb-clock {
+  font-size:10px;color:var(--fifa-red);font-weight:700;
+  font-family:var(--font-body);letter-spacing:1px;
+  white-space:nowrap;
+}
+.lb-countdown {
+  font-family:var(--font-titles);font-size:14px;
+  color:var(--fifa-green);letter-spacing:1px;white-space:nowrap;
+}
+
+/* Buteurs */
+.lb-scorers {
+  display:flex;gap:10px;overflow:hidden;flex:1;
+  mask-image:linear-gradient(90deg,#000 80%,transparent 100%);
+}
+.lb-scorer {
+  display:inline-flex;align-items:center;gap:4px;
+  font-size:10px;color:var(--fifa-muted);white-space:nowrap;
+  font-family:var(--font-body);
+}
+.lb-scorer span { color:#fff;font-weight:600; }
+
+/* Groupe + nav */
+.lb-group {
+  font-size:9px;color:var(--fifa-purple);
+  border:1px solid rgba(123,47,190,0.3);
+  padding:2px 7px;border-radius:2px;letter-spacing:1px;
+  white-space:nowrap;font-family:var(--font-body);
+}
+.lb-nav {
+  display:flex;gap:4px;align-items:center;margin-left:auto;
+}
+.lb-nav-btn {
+  background:transparent;border:1px solid var(--fifa-border);
+  color:var(--fifa-muted);font-size:12px;cursor:pointer;
+  padding:3px 8px;border-radius:2px;transition:all .2s;
+  line-height:1;
+}
+.lb-nav-btn:hover { border-color:var(--fifa-muted);color:#fff; }
+.lb-counter {
+  font-size:9px;color:var(--fifa-muted);
+  font-family:var(--font-body);letter-spacing:1px;white-space:nowrap;
+}
+.lb-arabic {
+  font-family:'Cairo',sans-serif;font-size:10px;
+  color:var(--fifa-muted);direction:rtl;white-space:nowrap;
+}
+
+/* Décaler le contenu principal */
+body { padding-top: 44px; }
+nav { top: 44px; }
+
+@media(max-width:768px){
+  .lb-scorers,.lb-group,.lb-arabic { display:none; }
+  .lb-team-name { display:none; }
+  .live-bar { padding:0 12px;gap:8px; }
+}
+
 @keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
 
 footer{background:#06080D;border-top:1px solid var(--fifa-border);padding:40px 40px 28px}
@@ -346,6 +657,24 @@ footer{background:#06080D;border-top:1px solid var(--fifa-border);padding:40px 4
   </div>
   <div class="groups-full-grid" id="groups-container">
     <div class="loading-state"><div class="spinner"></div>Chargement des groupes...</div>
+  </div>
+</section>
+<div class="divider"></div>
+
+
+<!-- ══════════════════════════════════════
+     WIDGET LIVE — Tâche 2
+══════════════════════════════════════ -->
+<section class="live-widget-section" id="live">
+  <div class="live-widget-wrap">
+    <div class="section-header" style="margin-bottom:28px">
+      <div class="section-eyebrow">En Direct · <span class="ar" style="font-family:'Cairo',sans-serif">مباشر الآن</span></div>
+      <h2 class="section-title"><span class="grad">Match</span> <span style="color:#fff">Live</span></h2>
+      <span class="section-title-ar">المباراة المباشرة</span>
+    </div>
+    <div id="live-widget-content">
+      <div class="loading-state"><div class="spinner"></div>Chargement match en direct...<br><span class="ar" style="font-family:'Cairo',sans-serif;font-size:12px">جاري تحميل المباراة المباشرة</span></div>
+    </div>
   </div>
 </section>
 <div class="divider"></div>
