@@ -524,3 +524,345 @@ document.addEventListener('DOMContentLoaded', () => {
   initStandingsTabs();
   startAutoRefresh();
 });
+
+// ══════════════════════════════════════
+// WIDGET LIVE — Tâche 2
+// ══════════════════════════════════════
+
+const NEXT_ALGERIA = {
+  homeTeam: 'Algérie', homeFlag: '🇩🇿', homeAr: 'الجزائر',
+  awayTeam: 'Argentine', awayFlag: '🇦🇷', awayAr: 'الأرجنتين',
+  date: new Date('2026-06-16T02:00:00Z'), // 21h00 ET = 02h00 Algérie 17 juin
+  venue: 'Arrowhead Stadium, Kansas City',
+  venueAr: 'ملعب أروهيد، كنساس سيتي',
+  group: 'Groupe J · المجموعة J',
+};
+
+const TEAM_NAMES_AR = {
+  'Algeria':'الجزائر','Argentina':'الأرجنتين','France':'فرنسا',
+  'Brazil':'البرازيل','Spain':'إسبانيا','Germany':'ألمانيا',
+  'England':'إنجلترا','Portugal':'البرتغال','Morocco':'المغرب',
+  'USA':'الولايات المتحدة','Mexico':'المكسيك','Canada':'كندا',
+  'Netherlands':'هولندا','Croatia':'كرواتيا','Japan':'اليابان',
+  'Senegal':'السنغال','Uruguay':'أوروغواي','Colombia':'كولومبيا',
+  'Austria':'النمسا','Jordan':'الأردن',
+};
+
+function getArName(name) { return TEAM_NAMES_AR[name] || name; }
+
+async function loadLiveWidget() {
+  const container = $('live-widget-content');
+  if (!container) return;
+
+  try {
+    const res = await fetch('/api/live');
+    const data = await res.json();
+    const live = data.live || [];
+    const recent = data.recent || [];
+
+    if (live.length > 0) {
+      // Afficher le match en direct
+      renderLiveMatch(live[0], container);
+    } else {
+      // Pas de match en direct → afficher compteur prochain match Algérie
+      renderNextMatch(container);
+    }
+  } catch {
+    renderNextMatch(container);
+  }
+}
+
+function renderLiveMatch(match, container) {
+  const scorers = match.scorers || [];
+  const scorersHTML = scorers.length > 0 ? `
+    <div class="lw-scorers">
+      ${scorers.map(s => `
+        <div class="lw-scorer-item">
+          <span class="lw-scorer-icon">⚽</span>
+          <span class="lw-scorer-name">${s.player}</span>
+          <span class="lw-scorer-clock">${s.clock}'</span>
+        </div>
+      `).join('')}
+    </div>
+  ` : '<div class="lw-no-live" style="font-size:11px;padding:8px 32px 16px">Aucun but pour le moment · لا أهداف حتى الآن</div>';
+
+  container.innerHTML = `
+    <div class="lw-live-card">
+      <div class="lw-live-header">
+        <div style="display:flex;align-items:center;gap:12px">
+          <span class="lw-live-badge">🔴 EN DIRECT</span>
+          <span class="lw-live-badge-ar">مباشر</span>
+        </div>
+        <span class="lw-clock">${match.clock || ''} ${match.period > 1 ? '(2T)' : '(1T)'}</span>
+        <span class="lw-group">${match.group || 'CdM 2026'}</span>
+      </div>
+      <div class="lw-scoreboard">
+        <div class="lw-team">
+          <span class="lw-team-flag">${match.homeFlag}</span>
+          <span class="lw-team-name">${match.homeTeam}</span>
+          <span class="lw-team-name-ar">${getArName(match.homeTeam)}</span>
+        </div>
+        <div class="lw-score-center">
+          <div class="lw-score">${match.homeScore ?? 0}<span class="lw-score-sep"> – </span>${match.awayScore ?? 0}</div>
+          <div class="lw-halftime">${match.venue || ''}</div>
+        </div>
+        <div class="lw-team">
+          <span class="lw-team-flag">${match.awayFlag}</span>
+          <span class="lw-team-name">${match.awayTeam}</span>
+          <span class="lw-team-name-ar">${getArName(match.awayTeam)}</span>
+        </div>
+      </div>
+      ${scorersHTML}
+    </div>`;
+}
+
+function renderNextMatch(container) {
+  const m = NEXT_ALGERIA;
+  container.innerHTML = `
+    <div class="lw-next-card">
+      <div class="lw-next-header">
+        <span class="lw-next-label">Prochain match · الجزائر</span>
+        <span class="lw-next-label-ar">المباراة القادمة للخضر</span>
+      </div>
+      <div class="lw-next-body">
+        <div class="lw-team" style="align-items:center">
+          <span class="lw-team-flag">${m.homeFlag}</span>
+          <span class="lw-team-name">${m.homeTeam}</span>
+          <span class="lw-team-name-ar">${m.homeAr}</span>
+        </div>
+        <div class="lw-next-vs">
+          <div style="font-family:var(--font-titles);font-size:28px;color:var(--fifa-muted)">VS</div>
+          <div style="font-size:9px;color:var(--fifa-purple);letter-spacing:1px;margin-top:4px">${m.group}</div>
+        </div>
+        <div class="lw-team" style="align-items:center">
+          <span class="lw-team-flag">${m.awayFlag}</span>
+          <span class="lw-team-name">${m.awayTeam}</span>
+          <span class="lw-team-name-ar">${m.awayAr}</span>
+        </div>
+      </div>
+      <div class="lw-countdown" id="lw-cd-wrap">
+        <div class="lw-cd-unit">
+          <span class="lw-cd-num" id="lw-days">00</span>
+          <span class="lw-cd-label">Jours</span>
+          <span class="lw-cd-label-ar">أيام</span>
+        </div>
+        <div class="lw-cd-unit">
+          <span class="lw-cd-num" id="lw-hours">00</span>
+          <span class="lw-cd-label">Heures</span>
+          <span class="lw-cd-label-ar">ساعات</span>
+        </div>
+        <div class="lw-cd-unit">
+          <span class="lw-cd-num" id="lw-mins">00</span>
+          <span class="lw-cd-label">Mins</span>
+          <span class="lw-cd-label-ar">دقائق</span>
+        </div>
+        <div class="lw-cd-unit">
+          <span class="lw-cd-num" id="lw-secs">00</span>
+          <span class="lw-cd-label">Secs</span>
+          <span class="lw-cd-label-ar">ثواني</span>
+        </div>
+      </div>
+      <div class="lw-venue">📍 ${m.venue} · ${m.venueAr}</div>
+    </div>`;
+
+  // Lancer le compteur
+  startLiveCountdown(m.date);
+}
+
+function startLiveCountdown(targetDate) {
+  function pad(n) { return String(Math.max(0,n)).padStart(2,'0'); }
+  function tick() {
+    const diff = targetDate - Date.now();
+    const d = $('lw-days'), h = $('lw-hours'), m = $('lw-mins'), s = $('lw-secs');
+    if (!d) return;
+    if (diff <= 0) {
+      d.textContent = '00'; h.textContent = '00';
+      m.textContent = '00'; s.textContent = '00';
+      return;
+    }
+    d.textContent = pad(Math.floor(diff / 86400000));
+    h.textContent = pad(Math.floor((diff % 86400000) / 3600000));
+    m.textContent = pad(Math.floor((diff % 3600000) / 60000));
+    s.textContent = pad(Math.floor((diff % 60000) / 1000));
+  }
+  tick();
+  setInterval(tick, 1000);
+}
+
+// Rafraîchir le widget live toutes les 30 secondes
+document.addEventListener('DOMContentLoaded', () => {
+  loadLiveWidget();
+  setInterval(loadLiveWidget, 30000);
+});
+
+// ══════════════════════════════════════
+// LIVE BAR — Widget flottant mondial
+// ══════════════════════════════════════
+
+let liveBarMatches = [];
+let liveBarIndex   = 0;
+let liveBarTimer   = null;
+let cdInterval     = null;
+
+const TEAM_AR = {
+  'Algeria':'الجزائر','Argentina':'الأرجنتين','France':'فرنسا',
+  'Brazil':'البرازيل','Spain':'إسبانيا','Germany':'ألمانيا',
+  'England':'إنجلترا','Portugal':'البرتغال','Morocco':'المغرب',
+  'USA':'الولايات المتحدة','Mexico':'المكسيك','Canada':'كندا',
+  'Turkey':'تركيا','Austria':'النمسا','Jordan':'الأردن',
+  'Netherlands':'هولندا','Croatia':'كرواتيا','Japan':'اليابان',
+  'Senegal':'السنغال','Uruguay':'أوروغواي','Colombia':'كولومبيا',
+  'Italy':'إيطاليا','Norway':'النرويج','Scotland':'اسكتلندا',
+  'Serbia':'صربيا','Ukraine':'أوكرانيا','Belgium':'بلجيكا',
+  'Denmark':'الدانمارك','Poland':'بولندا','Switzerland':'سويسرا',
+  'South Korea':'كوريا الجنوبية','Australia':'أستراليا',
+  'Ecuador':'الإكوادور','Tunisia':'تونس','Cameroon':'الكاميرون',
+  'Ghana':'غانا','Saudi Arabia':'السعودية','Iran':'إيران',
+  'Nigeria':'نيجيريا','Egypt':'مصر','Ivory Coast':'كوت ديفوار',
+  'DR Congo':'الكونغو','Cape Verde':'الرأس الأخضر',
+  'Uzbekistan':'أوزبكستان','Iraq':'العراق','Panama':'بنما',
+  'Jamaica':'جامايكا','Venezuela':'فنزويلا','Peru':'بيرو',
+  'Chile':'تشيلي','Bolivia':'بوليفيا','Paraguay':'باراغواي',
+  'Costa Rica':'كوستاريكا','Honduras':'هندوراس',
+  'New Zealand':'نيوزيلندا','Indonesia':'إندونيسيا',
+};
+
+function arTeam(name) { return TEAM_AR[name] || name; }
+
+// Charger les matchs depuis l'API live
+async function fetchLiveBarData() {
+  try {
+    const res = await fetch('/api/live');
+    const data = await res.json();
+
+    const now = new Date();
+    const all = [];
+
+    // 1. Matchs EN DIRECT en premier
+    (data.live || []).forEach(m => all.push({ ...m, _state: 'live' }));
+
+    // 2. Matchs À VENIR aujourd'hui
+    (data.upcoming || []).forEach(m => {
+      const d = new Date(m.date);
+      const today = now.toDateString();
+      if (d.toDateString() === today || d - now < 86400000) {
+        all.push({ ...m, _state: 'soon' });
+      }
+    });
+
+    // 3. Matchs TERMINÉS récents
+    (data.recent || []).slice(0,2).forEach(m => all.push({ ...m, _state: 'done' }));
+
+    liveBarMatches = all;
+    if (liveBarMatches.length > 0) {
+      // Pointer vers le premier live ou le prochain
+      const liveIdx = liveBarMatches.findIndex(m => m._state === 'live');
+      liveBarIndex = liveIdx >= 0 ? liveIdx : 0;
+      renderLiveBar();
+    }
+  } catch(e) {
+    console.error('LiveBar error:', e);
+  }
+}
+
+function renderLiveBar() {
+  if (liveBarMatches.length === 0) return;
+  const m = liveBarMatches[liveBarIndex];
+  if (!m) return;
+
+  // Éléments DOM
+  const badge    = $('lb-badge');
+  const homeFlag = $('lb-home-flag');
+  const homeName = $('lb-home-name');
+  const score    = $('lb-score');
+  const awayFlag = $('lb-away-flag');
+  const awayName = $('lb-away-name');
+  const clock    = $('lb-clock');
+  const cdEl     = $('lb-countdown');
+  const scorers  = $('lb-scorers');
+  const group    = $('lb-group');
+  const arabic   = $('lb-arabic');
+  const counter  = $('lb-counter');
+
+  if (!badge) return;
+
+  // Flags et noms
+  homeFlag.textContent = m.homeFlag || '⚽';
+  homeName.textContent = m.homeTeam || '—';
+  awayFlag.textContent = m.awayFlag || '⚽';
+  awayName.textContent = m.awayTeam || '—';
+  group.textContent    = m.group || 'CdM 2026';
+  arabic.textContent   = `${arTeam(m.homeTeam)} vs ${arTeam(m.awayTeam)}`;
+  counter.textContent  = `${liveBarIndex+1}/${liveBarMatches.length}`;
+
+  // Arrêter le compte à rebours précédent
+  if (cdInterval) { clearInterval(cdInterval); cdInterval = null; }
+  cdEl.textContent = '';
+  clock.textContent = '';
+
+  if (m._state === 'live') {
+    // EN DIRECT
+    badge.className = 'lb-badge is-live';
+    badge.textContent = '🔴 LIVE';
+    score.className = 'lb-score live';
+    score.textContent = `${m.homeScore ?? 0} – ${m.awayScore ?? 0}`;
+    clock.textContent = m.clock ? `${m.clock}'` : '';
+
+    // Buteurs
+    const goals = (m.scorers || []);
+    scorers.innerHTML = goals.length > 0
+      ? goals.map(g => `<span class="lb-scorer">⚽ <span>${g.player}</span> ${g.clock}'</span>`).join('')
+      : '<span class="lb-scorer" style="color:var(--fifa-muted)">Aucun but · لا أهداف</span>';
+
+  } else if (m._state === 'soon') {
+    // À VENIR — compte à rebours
+    badge.className = 'lb-badge is-soon';
+    badge.textContent = '⏱ BIENTÔT';
+    score.className = 'lb-score soon';
+    score.textContent = 'VS';
+    scorers.innerHTML = '';
+
+    const target = new Date(m.date);
+    function tickCD() {
+      const diff = target - Date.now();
+      if (diff <= 0) {
+        cdEl.textContent = '🔴 MAINTENANT';
+        clearInterval(cdInterval);
+        // Recharger dans 30s
+        setTimeout(fetchLiveBarData, 30000);
+        return;
+      }
+      const h = Math.floor(diff / 3600000);
+      const mn = Math.floor((diff % 3600000) / 60000);
+      const s = Math.floor((diff % 60000) / 1000);
+      cdEl.textContent = h > 0
+        ? `dans ${h}h ${String(mn).padStart(2,'0')}m`
+        : `dans ${String(mn).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+    }
+    tickCD();
+    cdInterval = setInterval(tickCD, 1000);
+
+  } else {
+    // TERMINÉ
+    badge.className = 'lb-badge is-done';
+    badge.textContent = '✓ TERMINÉ';
+    score.className = 'lb-score done';
+    score.textContent = `${m.homeScore ?? 0} – ${m.awayScore ?? 0}`;
+    clock.textContent = 'FIN';
+    const goals = (m.scorers || []);
+    scorers.innerHTML = goals.map(g => `<span class="lb-scorer">⚽ <span>${g.player}</span> ${g.clock}'</span>`).join('');
+  }
+}
+
+// Navigation entre matchs
+window.liveBarNav = function(dir) {
+  if (liveBarMatches.length === 0) return;
+  liveBarIndex = (liveBarIndex + dir + liveBarMatches.length) % liveBarMatches.length;
+  renderLiveBar();
+};
+
+// Init + refresh toutes les 30 secondes
+document.addEventListener('DOMContentLoaded', () => {
+  fetchLiveBarData();
+  setInterval(fetchLiveBarData, 30000);
+});
