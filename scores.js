@@ -734,60 +734,45 @@ async function fetchLiveBarData() {
   try {
     const res = await fetch('/api/live');
     const data = await res.json();
-
     const now = new Date();
     const all = [];
 
-    // 1. Matchs EN DIRECT — priorité absolue
+    // 1. Matchs EN DIRECT
     (data.live || []).forEach(m => all.push({ ...m, _state: 'live' }));
 
-    // 2. Prochain match à venir (le plus proche dans le temps)
-    const upcoming = (data.upcoming || [])
+    // 2. Matchs à venir — triés par date
+    (data.upcoming || [])
       .map(m => ({ ...m, _dt: new Date(m.date) }))
       .filter(m => m._dt > now)
-      .sort((a,b) => a._dt - b._dt);
-    
-    // Afficher les 5 prochains matchs
-    upcoming.slice(0,5).forEach(m => all.push({ ...m, _state: 'soon' }));
+      .sort((a,b) => a._dt - b._dt)
+      .slice(0,5)
+      .forEach(m => all.push({ ...m, _state: 'soon' }));
 
-    // 3. Dernier match terminé
-    (data.recent || []).slice(0,1).forEach(m => all.push({ ...m, _state: 'done' }));
+    // 3. Matchs terminés récents
+    (data.recent || []).slice(0,2).forEach(m => all.push({ ...m, _state: 'done' }));
 
     if (all.length === 0) return;
 
     liveBarMatches = all;
 
-    // Auto-pointer : live d'abord, sinon prochain match
+    // Pointer vers live → sinon prochain → sinon terminé
     const liveIdx = all.findIndex(m => m._state === 'live');
-    if (liveIdx >= 0) {
-      liveBarIndex = liveIdx;
-    } else {
-      // Pointer vers le match le plus proche
-      const soonIdx = all.findIndex(m => m._state === 'soon');
-      liveBarIndex = soonIdx >= 0 ? soonIdx : 0;
-    }
+    const soonIdx = all.findIndex(m => m._state === 'soon');
+    liveBarIndex = liveIdx >= 0 ? liveIdx : soonIdx >= 0 ? soonIdx : 0;
 
     renderLiveBar();
 
-    // Auto-avancer vers le prochain match quand un match se termine
-    autoAdvanceBar();
+    // Si prochain match dans moins d'1h → re-check dans 30s
+    const next = all.find(m => m._state === 'soon');
+    if (next) {
+      const msLeft = new Date(next.date) - now;
+      if (msLeft > 0 && msLeft < 3600000) {
+        setTimeout(fetchLiveBarData, 30000);
+      }
+    }
 
   } catch(e) {
     console.error('LiveBar error:', e);
-  }
-}
-
-// Quand un match "soon" démarre, passer en mode live
-function autoAdvanceBar() {
-  const m = liveBarMatches[liveBarIndex];
-  if (!m || m._state !== 'soon') return;
-  const target = new Date(m.date);
-  const msLeft = target - Date.now();
-  if (msLeft > 0 && msLeft < 3600000) {
-    // Moins d'1h → vérifier toutes les 30s si le match a commencé
-    setTimeout(() => {
-      fetchLiveBarData();
-    }, Math.min(msLeft + 5000, 30000));
   }
 }
 
@@ -826,42 +811,47 @@ function renderLiveBar() {
   cdEl.textContent = '';
   clock.textContent = '';
 
-  if (m._state === 'live') {
-    // EN DIRECT
+  const state = m._state;
+
+  if (state === 'live') {
+    // ── EN DIRECT ──
     badge.className = 'lb-badge is-live';
     badge.textContent = '🔴 LIVE';
     score.className = 'lb-score live';
     score.textContent = `${m.homeScore ?? 0} – ${m.awayScore ?? 0}`;
     clock.textContent = m.clock ? `${m.clock}'` : '';
-
-    // Buteurs
-    const goals = (m.scorers || []);
+    cdEl.textContent = '';
+    const goals = m.scorers || [];
     scorers.innerHTML = goals.length > 0
       ? goals.map(g => `<span class="lb-scorer">⚽ <span>${g.player}</span> ${g.clock}'</span>`).join('')
-      : '<span class="lb-scorer" style="color:var(--fifa-muted)">Aucun but · لا أهداف</span>';
+      : `<span class="lb-scorer" style="color:var(--fifa-muted)">Aucun but · لا أهداف</span>`;
 
-  } else if (m._state === 'soon') {
-    // À VENIR — compte à rebours
+  } else if (state === 'soon') {
+    // ── À VENIR — compte à rebours ──
     badge.className = 'lb-badge is-soon';
-    badge.textContent = '⏱ BIENTÔT';
     score.className = 'lb-score soon';
     score.textContent = 'VS';
     scorers.innerHTML = '';
+    clock.textContent = '';
 
     const target = new Date(m.date);
+
     function tickCD() {
       const diff = target - Date.now();
+      if (!$('lb-countdown')) { clearInterval(cdInterval); return; }
       if (diff <= 0) {
-        cdEl.textContent = '🔴 MAINTENANT';
+        badge.textContent = '🔴 MAINTENANT';
+        badge.className = 'lb-badge is-live';
+        $('lb-countdown').textContent = '';
         clearInterval(cdInterval);
-        // Recharger dans 30s
-        setTimeout(fetchLiveBarData, 30000);
+        setTimeout(fetchLiveBarData, 15000);
         return;
       }
-      const h = Math.floor(diff / 3600000);
+      const h  = Math.floor(diff / 3600000);
       const mn = Math.floor((diff % 3600000) / 60000);
-      const s = Math.floor((diff % 60000) / 1000);
-      cdEl.textContent = h > 0
+      const s  = Math.floor((diff % 60000) / 1000);
+      badge.textContent = '⏱ BIENTÔT';
+      $('lb-countdown').textContent = h > 0
         ? `dans ${h}h ${String(mn).padStart(2,'0')}m`
         : `dans ${String(mn).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
     }
@@ -869,14 +859,17 @@ function renderLiveBar() {
     cdInterval = setInterval(tickCD, 1000);
 
   } else {
-    // TERMINÉ
+    // ── TERMINÉ ──
     badge.className = 'lb-badge is-done';
     badge.textContent = '✓ TERMINÉ';
     score.className = 'lb-score done';
     score.textContent = `${m.homeScore ?? 0} – ${m.awayScore ?? 0}`;
     clock.textContent = 'FIN';
-    const goals = (m.scorers || []);
-    scorers.innerHTML = goals.map(g => `<span class="lb-scorer">⚽ <span>${g.player}</span> ${g.clock}'</span>`).join('');
+    cdEl.textContent = '';
+    const goals = m.scorers || [];
+    scorers.innerHTML = goals.map(g =>
+      `<span class="lb-scorer">⚽ <span>${g.player}</span> ${g.clock}'</span>`
+    ).join('') || `<span class="lb-scorer" style="color:var(--fifa-muted)">FT · نهاية المباراة</span>`;
   }
 }
 
