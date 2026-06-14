@@ -738,30 +738,56 @@ async function fetchLiveBarData() {
     const now = new Date();
     const all = [];
 
-    // 1. Matchs EN DIRECT en premier
+    // 1. Matchs EN DIRECT — priorité absolue
     (data.live || []).forEach(m => all.push({ ...m, _state: 'live' }));
 
-    // 2. Matchs À VENIR aujourd'hui
-    (data.upcoming || []).forEach(m => {
-      const d = new Date(m.date);
-      const today = now.toDateString();
-      if (d.toDateString() === today || d - now < 86400000) {
-        all.push({ ...m, _state: 'soon' });
-      }
-    });
+    // 2. Prochain match à venir (le plus proche dans le temps)
+    const upcoming = (data.upcoming || [])
+      .map(m => ({ ...m, _dt: new Date(m.date) }))
+      .filter(m => m._dt > now)
+      .sort((a,b) => a._dt - b._dt);
+    
+    // Afficher les 5 prochains matchs
+    upcoming.slice(0,5).forEach(m => all.push({ ...m, _state: 'soon' }));
 
-    // 3. Matchs TERMINÉS récents
-    (data.recent || []).slice(0,2).forEach(m => all.push({ ...m, _state: 'done' }));
+    // 3. Dernier match terminé
+    (data.recent || []).slice(0,1).forEach(m => all.push({ ...m, _state: 'done' }));
+
+    if (all.length === 0) return;
 
     liveBarMatches = all;
-    if (liveBarMatches.length > 0) {
-      // Pointer vers le premier live ou le prochain
-      const liveIdx = liveBarMatches.findIndex(m => m._state === 'live');
-      liveBarIndex = liveIdx >= 0 ? liveIdx : 0;
-      renderLiveBar();
+
+    // Auto-pointer : live d'abord, sinon prochain match
+    const liveIdx = all.findIndex(m => m._state === 'live');
+    if (liveIdx >= 0) {
+      liveBarIndex = liveIdx;
+    } else {
+      // Pointer vers le match le plus proche
+      const soonIdx = all.findIndex(m => m._state === 'soon');
+      liveBarIndex = soonIdx >= 0 ? soonIdx : 0;
     }
+
+    renderLiveBar();
+
+    // Auto-avancer vers le prochain match quand un match se termine
+    autoAdvanceBar();
+
   } catch(e) {
     console.error('LiveBar error:', e);
+  }
+}
+
+// Quand un match "soon" démarre, passer en mode live
+function autoAdvanceBar() {
+  const m = liveBarMatches[liveBarIndex];
+  if (!m || m._state !== 'soon') return;
+  const target = new Date(m.date);
+  const msLeft = target - Date.now();
+  if (msLeft > 0 && msLeft < 3600000) {
+    // Moins d'1h → vérifier toutes les 30s si le match a commencé
+    setTimeout(() => {
+      fetchLiveBarData();
+    }, Math.min(msLeft + 5000, 30000));
   }
 }
 
