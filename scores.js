@@ -651,32 +651,21 @@ document.addEventListener('DOMContentLoaded',()=>{
         STATS.topDefense=teams.sort((a,b)=>a.ga-b.ga).slice(0,3).map(t=>({name:t.name,flag:t.flag,ar:t.ar,conceded:t.ga,matches:t.played}));
       }
 
-      // 2. Récupérer les vrais buteurs depuis ESPN live
-      const rl = await fetch('/api/live');
-      const dl = await rl.json();
-      const scorerMap = {};
-      const allMatches=[...(dl.live||[]),...(dl.recent||[])];
-      allMatches.forEach(m=>{
-        (m.scorers||[]).forEach(s=>{
-          if(!s.player||s.player==='Joueur') return;
-          const key=s.player;
-          if(!scorerMap[key]){
-            const teamName=s.team||m.homeTeam||'';
-            scorerMap[key]={
-              name:s.player,
-              ar:s.player,
-              flag_team: teamName, // Pour flagImg
-              team:ar(teamName),
-              goals:0
-            };
-          }
-          scorerMap[key].goals++;
-        });
-      });
-      const scorers=Object.values(scorerMap).filter(s=>s.goals>0).sort((a,b)=>b.goals-a.goals).slice(0,3);
-      if(scorers.length>0){
-        STATS.topScorers=scorers;
-      }
+      // 2. Vrais buteurs depuis api/stats
+      try {
+        const rs = await fetch('/api/stats');
+        const ds = await rs.json();
+        const scorers = (ds.topScorers||[]).slice(0,3);
+        if(scorers.length > 0){
+          STATS.topScorers = scorers.map(s=>({
+            name: s.name,
+            ar: s.name,
+            flag_team: s.team,
+            team: ar(s.team),
+            goals: s.goals,
+          }));
+        }
+      } catch(e){ console.warn('Stats scorers:', e.message); }
 
       render();
       // Mettre à jour les dots
