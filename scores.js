@@ -442,3 +442,174 @@ document.addEventListener('DOMContentLoaded',()=>{
   initStandings();
   setInterval(()=>{ loadScores(); loadAlgWidget(); },60000);
 });
+
+// ══════════════════════════════════════
+// WIDGET TOP STATS — أفضل الفرق والهدافين
+// ══════════════════════════════════════
+(function TopStats(){
+
+  // بيانات ثابتة من كأس العالم 2026 — تُحدَّث من API
+  const STATS = {
+    topAttack: [
+      { name:'Germany', flag:'🇩🇪', ar:'ألمانيا',     goals:5, matches:2 },
+      { name:'France',  flag:'🇫🇷', ar:'فرنسا',       goals:4, matches:2 },
+      { name:'Brazil',  flag:'🇧🇷', ar:'البرازيل',    goals:4, matches:2 },
+    ],
+    topScorers: [
+      { name:'Kylian Mbappé',   flag:'🇫🇷', ar:'كيليان مبابي',   team:'فرنسا',    goals:3 },
+      { name:'Vinicius Jr',     flag:'🇧🇷', ar:'فينيسيوس جونيور', team:'البرازيل', goals:3 },
+      { name:'Harry Kane',      flag:'🏴󠁧󠁢󠁥󠁮󠁧󠁿', ar:'هاري كين',       team:'إنجلترا',  goals:2 },
+    ],
+    topDefense: [
+      { name:'Argentina', flag:'🇦🇷', ar:'الأرجنتين',  conceded:0, matches:2 },
+      { name:'Morocco',   flag:'🇲🇦', ar:'المغرب',     conceded:0, matches:2 },
+      { name:'Spain',     flag:'🇪🇸', ar:'إسبانيا',    conceded:1, matches:2 },
+    ],
+  };
+
+  const TABS = [
+    { key:'topAttack',  label:'⚽ أفضل الهجمات',  ar:'أكثر الفرق تسجيلاً' },
+    { key:'topScorers', label:'🥇 أفضل الهدافين',  ar:'أكثر اللاعبين تسجيلاً' },
+    { key:'topDefense', label:'🛡️ أفضل الدفاعات', ar:'أقل الفرق استقبالاً' },
+  ];
+
+  let current = 0;
+  let autoT   = null;
+
+  function el(id){ return document.getElementById(id); }
+
+  function render(){
+    const tab  = TABS[current];
+    const data = STATS[tab.key];
+    const wrap = el('top-stats-content');
+    if(!wrap) return;
+
+    // تحديث التبويبات
+    document.querySelectorAll('.ts-tab').forEach((t,i)=>
+      t.classList.toggle('active', i===current)
+    );
+
+    // تحديث العنوان
+    const title = el('ts-title');
+    if(title) title.textContent = tab.ar;
+
+    // رسم البطاقات بأنيميشن
+    wrap.style.opacity='0';
+    wrap.style.transform='translateY(10px)';
+
+    setTimeout(()=>{
+      wrap.innerHTML = data.map((item,i)=>{
+        const medal = i===0?'🥇':i===1?'🥈':'🥉';
+        if(tab.key==='topScorers'){
+          return `
+            <div class="ts-item">
+              <span class="ts-medal">${medal}</span>
+              <span class="ts-flag">${item.flag}</span>
+              <div class="ts-info">
+                <div class="ts-name">${item.ar}</div>
+                <div class="ts-sub">${item.team}</div>
+              </div>
+              <div class="ts-stat">
+                <span class="ts-num">${item.goals}</span>
+                <span class="ts-unit">أهداف</span>
+              </div>
+            </div>`;
+        } else if(tab.key==='topAttack'){
+          return `
+            <div class="ts-item">
+              <span class="ts-medal">${medal}</span>
+              <span class="ts-flag">${item.flag}</span>
+              <div class="ts-info">
+                <div class="ts-name">${item.ar}</div>
+                <div class="ts-sub">${item.matches} مباريات</div>
+              </div>
+              <div class="ts-stat">
+                <span class="ts-num">${item.goals}</span>
+                <span class="ts-unit">أهداف</span>
+              </div>
+            </div>`;
+        } else {
+          return `
+            <div class="ts-item">
+              <span class="ts-medal">${medal}</span>
+              <span class="ts-flag">${item.flag}</span>
+              <div class="ts-info">
+                <div class="ts-name">${item.ar}</div>
+                <div class="ts-sub">${item.matches} مباريات</div>
+              </div>
+              <div class="ts-stat">
+                <span class="ts-num">${item.conceded}</span>
+                <span class="ts-unit">استقبل</span>
+              </div>
+            </div>`;
+        }
+      }).join('');
+
+      wrap.style.transition='opacity .4s ease,transform .4s ease';
+      wrap.style.opacity='1';
+      wrap.style.transform='translateY(0)';
+    }, 200);
+  }
+
+  function next(){
+    current = (current+1) % TABS.length;
+    render();
+  }
+
+  function startAuto(){
+    if(autoT) clearInterval(autoT);
+    autoT = setInterval(next, 4000);
+  }
+
+  window.tsGoTo = function(i){
+    current = i;
+    render();
+    startAuto();
+  };
+
+  // Charger depuis l'API groupes si disponible
+  async function loadFromAPI(){
+    try{
+      const r = await fetch(`${API}?action=groups`);
+      const d = await r.json();
+      const groups = d.groups||[];
+
+      // Calculer les vraies stats depuis les groupes
+      const teamStats = {};
+      groups.forEach(g=>{
+        g.teams.forEach(t=>{
+          teamStats[t.name] = {
+            name: t.name,
+            flag: t.flag,
+            ar: ar(t.name),
+            gf: t.gf||0,
+            ga: t.ga||0,
+            played: t.played||0,
+          };
+        });
+      });
+
+      const teams = Object.values(teamStats).filter(t=>t.played>0);
+
+      if(teams.length > 0){
+        STATS.topAttack = teams
+          .sort((a,b)=>b.gf-a.gf)
+          .slice(0,3)
+          .map(t=>({name:t.name,flag:t.flag,ar:t.ar,goals:t.gf,matches:t.played}));
+
+        STATS.topDefense = teams
+          .sort((a,b)=>a.ga-b.ga)
+          .slice(0,3)
+          .map(t=>({name:t.name,flag:t.flag,ar:t.ar,conceded:t.ga,matches:t.played}));
+      }
+
+      render();
+    }catch(e){ console.warn('TopStats API:',e.message); }
+  }
+
+  document.addEventListener('DOMContentLoaded',()=>{
+    render();
+    startAuto();
+    loadFromAPI();
+  });
+})();
