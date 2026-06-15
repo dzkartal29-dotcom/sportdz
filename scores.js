@@ -205,7 +205,7 @@ async function loadAlgWidget(){
     const oppCode=(FLAG_CODES[oppFlag]||'').toLowerCase();
     if(oppEl && oppCode) oppEl.innerHTML=`<img src="https://hatscripts.github.io/circle-flags/flags/${oppCode}.svg" style="width:48px;height:48px;border-radius:50%;object-fit:cover" alt="${oppFlag}" onerror="this.outerHTML='🏳️'">`;
     $('alg-opp-name').textContent=ar(opp);
-    $('alg-date').textContent=`${formatDate(m.date)} · ${formatTime(m.date)}`;
+    $('alg-date').textContent=`${formatDate(m.date)} · ${formatTime(m.date)} (الجزائر)`;
     $('alg-venue').textContent=m.venue?`📍 ${m.venue}`:'';
     if(m.status==='STATUS_IN_PROGRESS'){
       const sc=isHome?`${m.homeScore??0}–${m.awayScore??0}`:`${m.awayScore??0}–${m.homeScore??0}`;
