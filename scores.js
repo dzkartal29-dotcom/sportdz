@@ -32,10 +32,11 @@ const FLAG_CODES = {
 
 function flagImg(team, size=24) {
   const code = FLAG_CODES[team];
-  if (!code) return `<span style="font-size:${size}px;font-family:'Segoe UI Emoji','Apple Color Emoji','Noto Color Emoji',sans-serif">${team||'🏳️'}</span>`;
-  return `<img src="https://flagcdn.com/w${size}/${code}.png" 
-    style="width:${size}px;height:auto;border-radius:2px;vertical-align:middle;object-fit:cover" 
-    alt="${team}" 
+  if (!code) return `<span style="font-size:${Math.max(size,16)}px;line-height:1">${team||'🏳️'}</span>`;
+  const radius = size >= 32 ? '50%' : '3px';
+  return `<img src="https://hatscripts.github.io/circle-flags/flags/${code}.svg"
+    style="width:${size}px;height:${size}px;border-radius:50%;vertical-align:middle;object-fit:cover;flex-shrink:0"
+    alt="${team}"
     onerror="this.style.display='none'">`;
 }
 
@@ -176,7 +177,9 @@ async function loadAlgWidget(){
     const isHome=m.homeTeam==='Algeria';
     const opp=isHome?m.awayTeam:m.homeTeam;
     const oppFlag=isHome?m.awayTeam:m.homeTeam; // use team name for flagImg
-    $('alg-opp-flag').innerHTML=flagImgXl(oppFlag||'');
+    const oppEl=$('alg-opp-flag');
+    const oppCode=(FLAG_CODES[oppFlag]||'').toLowerCase();
+    if(oppEl && oppCode) oppEl.innerHTML=`<img src="https://hatscripts.github.io/circle-flags/flags/${oppCode}.svg" style="width:48px;height:48px;border-radius:50%;object-fit:cover" alt="${oppFlag}" onerror="this.outerHTML='🏳️'">`;
     $('alg-opp-name').textContent=ar(opp);
     $('alg-date').textContent=`${formatDate(m.date)} · ${formatTime(m.date)}`;
     $('alg-venue').textContent=m.venue?`📍 ${m.venue}`:'';
@@ -403,7 +406,7 @@ function initStandings(){
           <span class="c-cat" style="background:${col};color:${col==='#00D673'?'#000':'#fff'}">${a.source_flag||'⚽'} ${a.category||'كرة القدم'}</span>
           ${isAlg?'<span style="font-size:16px">🇩🇿</span>':''}
         </div>
-        <div class="c-title">${a.title||''}</div>
+        <div class="c-title" style="font-size:clamp(14px,3.5vw,20px)">${a.title_ar||a.title||''}</div>
         ${a.title_ar?`<div style="font-size:12px;color:rgba(255,255,255,.5);margin-bottom:6px">${a.title_ar}</div>`:''}
         ${a.excerpt?`<p class="c-excerpt">${a.excerpt}</p>`:''}
         <div class="c-meta">
@@ -542,10 +545,10 @@ document.addEventListener('DOMContentLoaded',()=>{
           return `
             <div class="ts-item">
               <span class="ts-medal">${medal}</span>
-              <span class="ts-flag">${flagImg(item.name, 32)}</span>
+              <span class="ts-flag">${flagImg(item.flag_team||item.name, 32)}</span>
               <div class="ts-info">
-                <div class="ts-name">${item.ar}</div>
-                <div class="ts-sub">${item.team}</div>
+                <div class="ts-name">${item.name}</div>
+                <div class="ts-sub">${item.team||''}</div>
               </div>
               <div class="ts-stat">
                 <span class="ts-num">${item.goals}</span>
@@ -634,10 +637,14 @@ document.addEventListener('DOMContentLoaded',()=>{
           if(!s.player||s.player==='Joueur') return;
           const key=s.player;
           if(!scorerMap[key]){
-            // Trouver le flag de l'équipe
-            const teamName=s.team||'';
-            const teamFlag=m.homeTeam===teamName?m.homeFlag:m.awayFlag;
-            scorerMap[key]={name:s.player,ar:s.player,flag:teamFlag||'⚽',team:ar(teamName),goals:0};
+            const teamName=s.team||m.homeTeam||'';
+            scorerMap[key]={
+              name:s.player,
+              ar:s.player,
+              flag_team: teamName, // Pour flagImg
+              team:ar(teamName),
+              goals:0
+            };
           }
           scorerMap[key].goals++;
         });
