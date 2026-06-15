@@ -15,6 +15,7 @@
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 html{scroll-behavior:smooth}
 body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:15px;line-height:1.6;overflow-x:hidden;direction:rtl}
+.emoji,.lb-flag,.alg-flag,.match-flag,.up-tflag,.g-flag,.nation-flag{font-family:'Segoe UI Emoji','Apple Color Emoji','Noto Color Emoji',sans-serif!important}
 
 /* GRAD */
 .grad{background:linear-gradient(90deg,var(--blue),var(--purple),var(--red));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
@@ -242,6 +243,35 @@ section{padding:60px 16px}
 @keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.4;transform:scale(.7)}}
 @keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
 
+
+/* ══ TOP STATS WIDGET ══ */
+.ts-section{background:#06080D;padding:48px 16px}
+.ts-wrap{max-width:480px;margin:0 auto}
+.ts-card{background:var(--card);border:1px solid var(--border);border-radius:6px;overflow:hidden}
+.ts-header{padding:14px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.ts-title-wrap{display:flex;flex-direction:column;gap:2px}
+.ts-eyebrow{font-size:9px;font-weight:700;letter-spacing:1px;color:var(--green)}
+.ts-title{font-size:15px;font-weight:800;color:#fff}
+.ts-tabs{display:flex;gap:4px}
+.ts-tab{font-size:9px;font-weight:700;padding:4px 9px;border:1px solid var(--border);border-radius:2px;color:var(--muted);cursor:pointer;background:transparent;transition:all .2s;white-space:nowrap}
+.ts-tab:hover{color:#fff;border-color:var(--muted)}
+.ts-tab.active{background:var(--green);color:#000;border-color:var(--green)}
+#top-stats-content{padding:8px 0}
+.ts-item{display:flex;align-items:center;gap:12px;padding:12px 16px;border-bottom:1px solid rgba(26,30,42,.4);transition:background .2s}
+.ts-item:last-child{border-bottom:none}
+.ts-item:hover{background:rgba(255,255,255,.02)}
+.ts-medal{font-size:20px;width:28px;text-align:center;flex-shrink:0}
+.ts-flag{font-size:26px;flex-shrink:0;font-family:'Segoe UI Emoji','Apple Color Emoji','Noto Color Emoji',sans-serif}
+.ts-info{flex:1;min-width:0}
+.ts-name{font-size:15px;font-weight:800;color:#fff}
+.ts-sub{font-size:10px;color:var(--muted);margin-top:1px}
+.ts-stat{text-align:center;flex-shrink:0}
+.ts-num{font-size:28px;font-weight:800;color:var(--green);display:block;line-height:1}
+.ts-unit{font-size:9px;color:var(--muted);display:block;margin-top:1px}
+.ts-footer{padding:10px 16px;border-top:1px solid var(--border);display:flex;justify-content:center;gap:6px}
+.ts-dot{width:6px;height:6px;border-radius:50%;background:var(--border);cursor:pointer;transition:all .2s}
+.ts-dot.active{background:var(--green);width:18px;border-radius:3px}
+
 /* FOOTER */
 footer{background:#06080D;border-top:1px solid var(--border);padding:32px 16px 24px}
 .footer-top{display:flex;flex-direction:column;gap:24px;margin-bottom:24px}
@@ -329,19 +359,19 @@ footer{background:#06080D;border-top:1px solid var(--border);padding:32px 16px 2
   <!-- Widget Algérie -->
   <div class="alg-widget">
     <div class="alg-label">🇩🇿 المباراة القادمة للخضر</div>
-    <div class="alg-match">
+    <div class="alg-match" style="direction:rtl">
       <div class="alg-team">
-        <div class="alg-flag">🇩🇿</div>
+        <div class="alg-flag" style="font-family:'Segoe UI Emoji','Apple Color Emoji','Noto Color Emoji',sans-serif">🇩🇿</div>
         <div class="alg-tname">الجزائر</div>
       </div>
       <div class="alg-center">
         <div class="alg-score" id="alg-score">VS</div>
         <div class="alg-status s-soon" id="alg-status">قادمة</div>
-        <div class="alg-meta" id="alg-date">16 يونيو 2026 · 03:00 (الجزائر)</div>
-        <div class="alg-meta" id="alg-venue">📍 أروهيد ستاديوم، كانساس سيتي</div>
+        <div class="alg-meta" id="alg-date">16 يونيو · 03:00 (الجزائر)</div>
+        <div class="alg-meta" id="alg-venue">📍 كانساس سيتي</div>
       </div>
       <div class="alg-team">
-        <div class="alg-flag" id="alg-opp-flag">🇦🇷</div>
+        <div class="alg-flag" id="alg-opp-flag" style="font-family:'Segoe UI Emoji','Apple Color Emoji','Noto Color Emoji',sans-serif">🇦🇷</div>
         <div class="alg-tname" id="alg-opp-name">الأرجنتين</div>
       </div>
     </div>
@@ -354,7 +384,7 @@ footer{background:#06080D;border-top:1px solid var(--border);padding:32px 16px 2
   </div>
 
   <div class="cd-wrap">
-    <span class="cd-label">انطلاق البطولة خلال</span>
+    <span class="cd-label">الجزائر vs الأرجنتين · الوقت المتبقي</span>
     <div class="cd-units">
       <div class="cd-unit"><span class="cd-num" id="cd-d">000</span><span class="cd-sub">أيام</span></div>
       <span class="cd-sep">:</span>
@@ -390,6 +420,35 @@ footer{background:#06080D;border-top:1px solid var(--border);padding:32px 16px 2
     </div>
     <div class="c-thumbs" id="c-thumbs"></div>
     <div class="c-dots" id="c-dots"></div>
+  </div>
+</section>
+<div class="divider"></div>
+
+
+<!-- ══ TOP STATS ══ -->
+<section class="ts-section" id="top-stats">
+  <div class="ts-wrap">
+    <div class="ts-card">
+      <div class="ts-header">
+        <div class="ts-title-wrap">
+          <span class="ts-eyebrow">إحصائيات كأس العالم 2026</span>
+          <span class="ts-title" id="ts-title">أكثر الفرق تسجيلاً</span>
+        </div>
+        <div class="ts-tabs">
+          <button class="ts-tab active" onclick="tsGoTo(0)">⚽ هجوم</button>
+          <button class="ts-tab" onclick="tsGoTo(1)">🥇 هدافون</button>
+          <button class="ts-tab" onclick="tsGoTo(2)">🛡️ دفاع</button>
+        </div>
+      </div>
+      <div id="top-stats-content">
+        <div class="loading-state" style="padding:28px"><div class="spinner" style="width:22px;height:22px;border-width:2px;margin:0 auto 8px"></div>جاري التحميل...</div>
+      </div>
+      <div class="ts-footer">
+        <div class="ts-dot active" onclick="tsGoTo(0)"></div>
+        <div class="ts-dot" onclick="tsGoTo(1)"></div>
+        <div class="ts-dot" onclick="tsGoTo(2)"></div>
+      </div>
+    </div>
   </div>
 </section>
 <div class="divider"></div>
@@ -522,7 +581,7 @@ footer{background:#06080D;border-top:1px solid var(--border);padding:32px 16px 2
 <script>
 // ── COUNTDOWN ─────────────────────────────────
 (function(){
-  const kick = new Date('2026-06-11T19:00:00-05:00');
+  const kick = new Date('2026-06-16T02:00:00Z'); // الجزائر vs الأرجنتين
   function pad(n){return String(Math.max(0,n)).padStart(2,'0')}
   function tick(){
     const diff = kick - Date.now();
