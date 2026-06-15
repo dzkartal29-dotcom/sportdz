@@ -1,6 +1,5 @@
-// api/stats.js — Statistiques CdM 2026
-// Buteurs, meilleures attaques, meilleures défenses
-export const config = { maxDuration: 15 };
+// api/stats.js — إحصائيات كأس العالم 2026
+export const config = { maxDuration: 30 };
 
 const CORS = {
   'Content-Type': 'application/json',
@@ -14,66 +13,76 @@ export default async function handler(req, res) {
   if (req.method === 'OPTIONS') return res.status(200).end();
 
   try {
-    // Récupérer tous les matchs terminés du tournoi
-    const [scoresRes, standingsRes] = await Promise.all([
-      fetch(`${ESPN_BASE}/scoreboard?limit=100`, {
-        signal: AbortSignal.timeout(8000),
-        headers: { 'User-Agent': 'Mozilla/5.0' }
-      }),
-      fetch(`${ESPN_BASE}/standings`, {
-        signal: AbortSignal.timeout(8000),
-        headers: { 'User-Agent': 'Mozilla/5.0' }
-      })
-    ]);
+    // 1. جلب قائمة المباريات
+    const sbRes = await fetch(`${ESPN_BASE}/scoreboard?limit=100`, {
+      signal: AbortSignal.timeout(8000),
+      headers: { 'User-Agent': 'Mozilla/5.0' }
+    });
+    const sbData = await sbRes.json();
+    const events = sbData.events || [];
 
-    const scoreboard = await scoresRes.json();
-    const events = scoreboard.events || [];
+    // 2. تصفية المباريات المنتهية فقط
+    const finished = events.filter(e => {
+      const status = e.competitions?.[0]?.status?.type?.name || '';
+      return status === 'STATUS_FINAL' || status === 'STATUS_FULL_TIME';
+    });
 
-    // Construire la map des buteurs depuis tous les matchs
+    // 3. جلب تفاصيل كل مباراة بالتوازي
     const scorerMap = {};
 
-    for (const e of events) {
-      const comp = e.competitions?.[0];
-      if (!comp) continue;
-      const statusName = comp.status?.type?.name || '';
-      // Seulement les matchs terminés
-      if (statusName !== 'STATUS_FINAL' && statusName !== 'STATUS_FULL_TIME') continue;
+    await Promise.allSettled(finished.map(async (e) => {
+      try {
+        const detailRes = await fetch(`${ESPN_BASE}/summary?event=${e.id}`, {
+          signal: AbortSignal.timeout(6000),
+          headers: { 'User-Agent': 'Mozilla/5.0' }
+        });
+        if (!detailRes.ok) return;
+        const detail = await detailRes.json();
 
-      const home = comp.competitors?.find(t => t.homeAway === 'home');
-      const away = comp.competitors?.find(t => t.homeAway === 'away');
+        // من scoring plays
+        const plays = detail.scoringPlays || [];
+        plays.forEach(p => {
+          const typeText = (p.type?.text || '').toLowerCase();
+          if (typeText.includes('own goal')) return;
 
-      const details = comp.details || [];
-      for (const d of details) {
-        const typeText = (d.type?.text || '').toLowerCase();
-        if (!typeText.includes('goal')) continue;
-        // Ignorer les buts contre son camp
-        if (typeText.includes('own')) continue;
+          const playerName = p.participants?.[0]?.athlete?.displayName
+                          || p.scoringPlay?.athlete?.displayName;
+          if (!playerName) return;
 
-        const playerName = d.athletesInvolved?.[0]?.displayName;
-        if (!playerName) continue;
+          const teamName = p.team?.displayName || '';
 
-        const teamName = d.team?.displayName || '';
-        const isHome = home?.team?.displayName === teamName;
-        const teamFlag = isHome ? home?.team?.displayName : away?.team?.displayName;
+          if (!scorerMap[playerName]) {
+            scorerMap[playerName] = { name: playerName, team: teamName, goals: 0 };
+          }
+          scorerMap[playerName].goals++;
+        });
 
-        if (!scorerMap[playerName]) {
-          scorerMap[playerName] = {
-            name: playerName,
-            team: teamName,
-            goals: 0,
-          };
-        }
-        scorerMap[playerName].goals++;
-      }
-    }
+        // من game details أيضاً
+        const gameDetail = detail.gameDetails || [];
+        gameDetail.forEach(d => {
+          const typeText = (d.type?.text || '').toLowerCase();
+          if (!typeText.includes('goal') || typeText.includes('own')) return;
+          const playerName = d.athletesInvolved?.[0]?.displayName;
+          if (!playerName) return;
+          const teamName = d.team?.displayName || '';
+          if (!scorerMap[playerName]) {
+            scorerMap[playerName] = { name: playerName, team: teamName, goals: 0 };
+          }
+          scorerMap[playerName].goals++;
+        });
 
-    // Trier les buteurs
+      } catch {}
+    }));
+
+    // 4. ترتيب الهدافين
     const topScorers = Object.values(scorerMap)
+      .filter(s => s.goals > 0)
       .sort((a,b) => b.goals - a.goals)
       .slice(0, 10);
 
     return res.status(200).json({
       topScorers,
+      matchesAnalyzed: finished.length,
       timestamp: new Date().toISOString(),
     });
 
