@@ -67,7 +67,7 @@ body{padding-top:96px}
 .alg-widget::before{content:'🦅';position:absolute;left:12px;top:50%;transform:translateY(-50%);font-size:60px;opacity:.05;pointer-events:none}
 .alg-label{font-size:10px;font-weight:700;letter-spacing:1px;color:var(--green);margin-bottom:14px;display:flex;align-items:center;gap:6px}
 .alg-label::before{content:'';width:6px;height:6px;background:var(--green);border-radius:50%;animation:pulse 1.5s infinite}
-.alg-match{display:flex;align-items:center;justify-content:center;gap:16px}
+.alg-match{display:flex;align-items:center;justify-content:center;gap:16px;direction:ltr}
 .alg-team{display:flex;flex-direction:column;align-items:center;gap:6px;min-width:90px}
 .alg-flag{font-size:36px}
 .alg-tname{font-size:14px;font-weight:800}
@@ -359,7 +359,7 @@ footer{background:#06080D;border-top:1px solid var(--border);padding:32px 16px 2
   <!-- Widget Algérie -->
   <div class="alg-widget">
     <div class="alg-label">🇩🇿 المباراة القادمة للخضر</div>
-    <div class="alg-match" style="direction:rtl">
+    <div class="alg-match">
       <div class="alg-team">
         <img src="https://flagcdn.com/w48/dz.png" style="width:48px;height:auto;border-radius:3px" alt="Algeria">
         <div class="alg-tname">الجزائر</div>
@@ -367,7 +367,7 @@ footer{background:#06080D;border-top:1px solid var(--border);padding:32px 16px 2
       <div class="alg-center">
         <div class="alg-score" id="alg-score">VS</div>
         <div class="alg-status s-soon" id="alg-status">قادمة</div>
-        <div class="alg-meta" id="alg-date">16 يونيو · 03:00 (الجزائر)</div>
+        <div class="alg-meta" id="alg-date">16 يونيو · 03:00</div>
         <div class="alg-meta" id="alg-venue">📍 كانساس سيتي</div>
       </div>
       <div class="alg-team">
@@ -460,9 +460,9 @@ footer{background:#06080D;border-top:1px solid var(--border);padding:32px 16px 2
     <h2 class="section-title"><span class="grad">الدول</span> <span style="color:#fff">المضيفة</span></h2>
   </div>
   <div class="nations-grid">
-    <div class="nation-card"><img src="https://flagcdn.com/w64/ca.png" style="width:52px;height:auto;margin-bottom:14px;border-radius:3px;display:block" alt="Canada"><div class="nation-name ca">كندا</div><div class="nation-cities"><span class="city-pill">فانكوفر</span><span class="city-pill">تورنتو</span></div></div>
-    <div class="nation-card"><img src="https://flagcdn.com/w64/mx.png" style="width:52px;height:auto;margin-bottom:14px;border-radius:3px;display:block" alt="Mexico"><div class="nation-name mx">المكسيك</div><div class="nation-cities"><span class="city-pill">مكسيكو سيتي</span><span class="city-pill">غوادالاخارا</span></div></div>
-    <div class="nation-card"><img src="https://flagcdn.com/w64/us.png" style="width:52px;height:auto;margin-bottom:14px;border-radius:3px;display:block" alt="USA"><div class="nation-name us">الولايات المتحدة</div><div class="nation-cities"><span class="city-pill">نيويورك</span><span class="city-pill">لوس أنجلوس</span><span class="city-pill">دالاس</span></div></div>
+    <div class="nation-card"><img src="https://flagcdn.com/w64/ca.png" style="width:52px;height:auto;margin-bottom:14px;border-radius:3px;display:block;margin-left:auto;margin-right:auto" alt="Canada"><div class="nation-name ca">كندا</div><div class="nation-cities"><span class="city-pill">فانكوفر</span><span class="city-pill">تورنتو</span></div></div>
+    <div class="nation-card"><img src="https://flagcdn.com/w64/mx.png" style="width:52px;height:auto;margin-bottom:14px;border-radius:3px;display:block;margin-left:auto;margin-right:auto" alt="Mexico"><div class="nation-name mx">المكسيك</div><div class="nation-cities"><span class="city-pill">مكسيكو سيتي</span><span class="city-pill">غوادالاخارا</span></div></div>
+    <div class="nation-card"><img src="https://flagcdn.com/w64/us.png" style="width:52px;height:auto;margin-bottom:14px;border-radius:3px;display:block;margin-left:auto;margin-right:auto" alt="USA"><div class="nation-name us">الولايات المتحدة</div><div class="nation-cities"><span class="city-pill">نيويورك</span><span class="city-pill">لوس أنجلوس</span><span class="city-pill">دالاس</span></div></div>
   </div>
 </section>
 <div class="divider"></div>
