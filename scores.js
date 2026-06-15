@@ -567,43 +567,51 @@ document.addEventListener('DOMContentLoaded',()=>{
     startAuto();
   };
 
-  // Charger depuis l'API groupes si disponible
+  // Charger les vraies données depuis ESPN + groupes
   async function loadFromAPI(){
     try{
-      const r = await fetch(`${API}?action=groups`);
-      const d = await r.json();
-      const groups = d.groups||[];
-
-      // Calculer les vraies stats depuis les groupes
+      // 1. Récupérer les groupes pour hجوم/دفاع
+      const rg = await fetch(`${API}?action=groups`);
+      const dg = await rg.json();
+      const groups = dg.groups||[];
       const teamStats = {};
       groups.forEach(g=>{
         g.teams.forEach(t=>{
-          teamStats[t.name] = {
-            name: t.name,
-            flag: t.flag,
-            ar: ar(t.name),
-            gf: t.gf||0,
-            ga: t.ga||0,
-            played: t.played||0,
-          };
+          teamStats[t.name]={name:t.name,flag:t.flag,ar:ar(t.name),gf:t.gf||0,ga:t.ga||0,played:t.played||0};
         });
       });
-
       const teams = Object.values(teamStats).filter(t=>t.played>0);
+      if(teams.length>0){
+        STATS.topAttack=teams.sort((a,b)=>b.gf-a.gf).slice(0,3).map(t=>({name:t.name,flag:t.flag,ar:t.ar,goals:t.gf,matches:t.played}));
+        STATS.topDefense=teams.sort((a,b)=>a.ga-b.ga).slice(0,3).map(t=>({name:t.name,flag:t.flag,ar:t.ar,conceded:t.ga,matches:t.played}));
+      }
 
-      if(teams.length > 0){
-        STATS.topAttack = teams
-          .sort((a,b)=>b.gf-a.gf)
-          .slice(0,3)
-          .map(t=>({name:t.name,flag:t.flag,ar:t.ar,goals:t.gf,matches:t.played}));
-
-        STATS.topDefense = teams
-          .sort((a,b)=>a.ga-b.ga)
-          .slice(0,3)
-          .map(t=>({name:t.name,flag:t.flag,ar:t.ar,conceded:t.ga,matches:t.played}));
+      // 2. Récupérer les vrais buteurs depuis ESPN live
+      const rl = await fetch('/api/live');
+      const dl = await rl.json();
+      const scorerMap = {};
+      const allMatches=[...(dl.live||[]),...(dl.recent||[])];
+      allMatches.forEach(m=>{
+        (m.scorers||[]).forEach(s=>{
+          if(!s.player||s.player==='Joueur') return;
+          const key=s.player;
+          if(!scorerMap[key]){
+            // Trouver le flag de l'équipe
+            const teamName=s.team||'';
+            const teamFlag=m.homeTeam===teamName?m.homeFlag:m.awayFlag;
+            scorerMap[key]={name:s.player,ar:s.player,flag:teamFlag||'⚽',team:ar(teamName),goals:0};
+          }
+          scorerMap[key].goals++;
+        });
+      });
+      const scorers=Object.values(scorerMap).filter(s=>s.goals>0).sort((a,b)=>b.goals-a.goals).slice(0,3);
+      if(scorers.length>0){
+        STATS.topScorers=scorers;
       }
 
       render();
+      // Mettre à jour les dots
+      document.querySelectorAll('.ts-dot').forEach((d,i)=>d.classList.toggle('active',i===current));
     }catch(e){ console.warn('TopStats API:',e.message); }
   }
 
