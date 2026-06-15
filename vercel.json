@@ -1,7 +1,9 @@
 {
   "functions": {
     "api/proxy.js": { "maxDuration": 30 },
-    "api/generate-articles.js": { "maxDuration": 60 }
+    "api/generate-articles.js": { "maxDuration": 60 },
+    "api/live.js": { "maxDuration": 15 },
+    "api/stats.js": { "maxDuration": 15 }
   },
   "crons": [
     {
