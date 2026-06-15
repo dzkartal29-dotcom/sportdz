@@ -5,6 +5,44 @@ const API = '/api/proxy';
 
 function $(id){ return document.getElementById(id); }
 
+// ══════════════════════════════════════
+// DRAPEAUX — Images flagcdn.com (PC + Mobile)
+// ══════════════════════════════════════
+const FLAG_CODES = {
+  'Algeria':'dz','Argentina':'ar','Austria':'at','Jordan':'jo',
+  'Mexico':'mx','South Africa':'za','South Korea':'kr','Canada':'ca',
+  'Brazil':'br','Haiti':'ht','Morocco':'ma','Australia':'au',
+  'Paraguay':'py','Turkey':'tr','Türkiye':'tr','USA':'us',
+  'Ecuador':'ec','Germany':'de','Ivory Coast':'ci',"Cote d'Ivoire":'ci',
+  'Japan':'jp','Netherlands':'nl','Sweden':'se','Tunisia':'tn',
+  'Belgium':'be','Egypt':'eg','Iran':'ir','New Zealand':'nz',
+  'Cape Verde':'cv','Saudi Arabia':'sa','Spain':'es','Uruguay':'uy',
+  'France':'fr','Iraq':'iq','Norway':'no','Senegal':'sn',
+  'Colombia':'co','DR Congo':'cd','Portugal':'pt','Uzbekistan':'uz',
+  'Croatia':'hr','England':'gb-eng','Ghana':'gh','Panama':'pa',
+  'Venezuela':'ve','Chile':'cl','Peru':'pe','Costa Rica':'cr',
+  'Honduras':'hn','Jamaica':'jm','Nigeria':'ng','Cameroon':'cm',
+  'Benin':'bj','Tanzania':'tz','Indonesia':'id','Ukraine':'ua',
+  'Scotland':'gb-sct','Wales':'gb-wls','Italy':'it','Bolivia':'bo',
+  'Curaçao':'cw','Serbia':'rs','Poland':'pl','Denmark':'dk',
+  'Switzerland':'ch','Qatar':'qa','South Korea':'kr','Ireland':'ie',
+  'Iceland':'is','Greece':'gr','Romania':'ro','Hungary':'hu',
+  'Slovakia':'sk','Albania':'al','Finland':'fi','Bosnia & Herzegovina':'ba',
+};
+
+function flagImg(team, size=24) {
+  const code = FLAG_CODES[team];
+  if (!code) return `<span style="font-size:${size}px;font-family:'Segoe UI Emoji','Apple Color Emoji','Noto Color Emoji',sans-serif">${team||'🏳️'}</span>`;
+  return `<img src="https://flagcdn.com/w${size}/${code}.png" 
+    style="width:${size}px;height:auto;border-radius:2px;vertical-align:middle;object-fit:cover" 
+    alt="${team}" 
+    onerror="this.style.display='none'">`;
+}
+
+function flagImgLg(team) { return flagImg(team, 32); }
+function flagImgXl(team) { return flagImg(team, 48); }
+
+
 function timeAgo(iso){
   const diff = Date.now() - new Date(iso).getTime();
   const m = Math.floor(diff/60000);
@@ -91,9 +129,9 @@ function ar(n){ return TEAM_AR[n]||n; }
     const sc=el('lb-score'), af=el('lb-aflag'), an=el('lb-aname');
     const cd=el('lb-cd'), cnt=el('lb-counter');
     if(!badge) return;
-    hf.textContent=m.homeFlag||'⚽';
+    hf.innerHTML=flagImg(m.homeTeam, 22)||'⚽';
     hn.textContent=ar(m.homeTeam)||'—';
-    af.textContent=m.awayFlag||'⚽';
+    af.innerHTML=flagImg(m.awayTeam, 22)||'⚽';
     an.textContent=ar(m.awayTeam)||'—';
     cnt.textContent=`${idx+1}/${matches.length}`;
     cd.textContent='';
@@ -137,8 +175,8 @@ async function loadAlgWidget(){
     if(!m){ $('alg-date').textContent='لا مباريات مجدولة'; return; }
     const isHome=m.homeTeam==='Algeria';
     const opp=isHome?m.awayTeam:m.homeTeam;
-    const oppFlag=isHome?m.awayFlag:m.homeFlag;
-    $('alg-opp-flag').textContent=oppFlag||'🏳️';
+    const oppFlag=isHome?m.awayTeam:m.homeTeam; // use team name for flagImg
+    $('alg-opp-flag').innerHTML=flagImgXl(oppFlag||'');
     $('alg-opp-name').textContent=ar(opp);
     $('alg-date').textContent=`${formatDate(m.date)} · ${formatTime(m.date)}`;
     $('alg-venue').textContent=m.venue?`📍 ${m.venue}`:'';
@@ -177,7 +215,7 @@ async function loadGroups(){
             ${g.teams.map((t,i)=>`
               <tr class="${i<2?'q':''}">
                 <td class="g-rank ${i<2?'q':''}">${i+1}</td>
-                <td><div class="g-team"><span class="g-flag">${t.flag}</span><span class="g-name ${t.name==='Algeria'?'g-alg':''}">${ar(t.name)}</span></div></td>
+                <td><div class="g-team"><span class="g-flag">${flagImg(t.name, 20)}</span><span class="g-name ${t.name==='Algeria'?'g-alg':''}">${ar(t.name)}</span></div></td>
                 <td style="text-align:center">${t.played}</td>
                 <td style="text-align:center">${t.won}</td>
                 <td style="text-align:center">${t.draw}</td>
@@ -218,11 +256,11 @@ async function loadScores(){
       return `<div class="match-row ${isAlg?'alg-match':''}">
         <span class="match-group">${(m.group||'CdM').replace('Group','J')}</span>
         <div class="match-teams">
-          <span class="match-flag">${m.homeFlag||''}</span>
+          <span class="match-flag">${flagImg(m.homeTeam, 22)}</span>
           <span class="match-team">${ar(m.homeTeam)}</span>
           ${scoreHTML}
           <span class="match-team">${ar(m.awayTeam)}</span>
-          <span class="match-flag">${m.awayFlag||''}</span>
+          <span class="match-flag">${flagImg(m.awayTeam, 22)}</span>
         </div>
         ${stHTML}
       </div>`;
@@ -273,12 +311,12 @@ function renderUpcoming(matches){
       </div>
       <div class="up-match">
         <div class="up-team">
-          <span class="up-tflag">${m.homeFlag||''}</span>
+          <span class="up-tflag">${flagImg(m.homeTeam, 26)}</span>
           <span class="up-tname">${ar(m.homeTeam)}</span>
         </div>
         <span class="up-vs">VS</span>
         <div class="up-team away">
-          <span class="up-tflag">${m.awayFlag||''}</span>
+          <span class="up-tflag">${flagImg(m.awayTeam, 26)}</span>
           <span class="up-tname">${ar(m.awayTeam)}</span>
         </div>
       </div>
@@ -504,7 +542,7 @@ document.addEventListener('DOMContentLoaded',()=>{
           return `
             <div class="ts-item">
               <span class="ts-medal">${medal}</span>
-              <span class="ts-flag">${item.flag}</span>
+              <span class="ts-flag">${flagImg(item.name, 32)}</span>
               <div class="ts-info">
                 <div class="ts-name">${item.ar}</div>
                 <div class="ts-sub">${item.team}</div>
@@ -518,7 +556,7 @@ document.addEventListener('DOMContentLoaded',()=>{
           return `
             <div class="ts-item">
               <span class="ts-medal">${medal}</span>
-              <span class="ts-flag">${item.flag}</span>
+              <span class="ts-flag">${flagImg(item.name, 32)}</span>
               <div class="ts-info">
                 <div class="ts-name">${item.ar}</div>
                 <div class="ts-sub">${item.matches} مباريات</div>
@@ -532,7 +570,7 @@ document.addEventListener('DOMContentLoaded',()=>{
           return `
             <div class="ts-item">
               <span class="ts-medal">${medal}</span>
-              <span class="ts-flag">${item.flag}</span>
+              <span class="ts-flag">${flagImg(item.name, 32)}</span>
               <div class="ts-info">
                 <div class="ts-name">${item.ar}</div>
                 <div class="ts-sub">${item.matches} مباريات</div>
