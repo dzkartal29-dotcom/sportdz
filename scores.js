@@ -28,6 +28,13 @@ const FLAG_CODES = {
   'Switzerland':'ch','Qatar':'qa','South Korea':'kr','Ireland':'ie',
   'Iceland':'is','Greece':'gr','Romania':'ro','Hungary':'hu',
   'Slovakia':'sk','Albania':'al','Finland':'fi','Bosnia & Herzegovina':'ba',
+  'Bosnia and Herzegovina':'ba','Czech Republic':'cz','North Macedonia':'mk',
+  'Montenegro':'me','Kosovo':'xk','El Salvador':'sv','Guatemala':'gt',
+  'Cuba':'cu','Zimbabwe':'zw','Zambia':'zm','Kenya':'ke',
+  'Ethiopia':'et','China':'cn','Vietnam':'vn','Thailand':'th',
+  'Oman':'om','Bahrain':'bh','Kuwait':'kw','Syria':'sy',
+  'Lebanon':'lb','Palestine':'ps','Fiji':'fj','North Korea':'kp',
+  'United States':'us','New Caledonia':'nc',
 };
 
 function flagImg(team, size=24) {
@@ -90,7 +97,24 @@ const TEAM_AR={
   'Chile':'تشيلي','Bolivia':'بوليفيا','Paraguay':'باراغواي',
   'New Zealand':'نيوزيلندا','Indonesia':'إندونيسيا',
   'Costa Rica':'كوستاريكا','Haiti':'هايتي','Benin':'بنين',
-  'Tanzania':'تنزانيا','Angola':'أنغولا','Ghana':'غانا',
+  'Tanzania':'تنزانيا','Angola':'أنغولا',
+  'Czech Republic':'جمهورية التشيك','South Africa':'جنوب أفريقيا',
+  'Bosnia & Herzegovina':'البوسنة والهرسك','Bosnia and Herzegovina':'البوسنة والهرسك',
+  'Qatar':'قطر','Wales':'ويلز','Albania':'ألبانيا',
+  'Slovakia':'سلوفاكيا','Romania':'رومانيا','Hungary':'المجر',
+  'Greece':'اليونان','Finland':'فنلندا','Iceland':'آيسلندا',
+  'Ireland':'أيرلندا','North Macedonia':'مقدونيا الشمالية',
+  'Montenegro':'الجبل الأسود','Kosovo':'كوسوفو',
+  'Panama':'بنما','El Salvador':'السلفادور','Honduras':'هندوراس',
+  'Guatemala':'غواتيمالا','Cuba':'كوبا','Trinidad and Tobago':'ترينيداد وتوباغو',
+  'Angola':'أنغولا','Zambia':'زامبيا','Zimbabwe':'زيمبابوي',
+  'Kenya':'كينيا','Ethiopia':'إثيوبيا','Mozambique':'موزمبيق',
+  'China':'الصين','Vietnam':'فيتنام','Thailand':'تايلاند',
+  'Oman':'عُمان','Bahrain':'البحرين','Kuwait':'الكويت',
+  'Syria':'سوريا','Lebanon':'لبنان','Palestine':'فلسطين',
+  'New Caledonia':'كاليدونيا الجديدة','Fiji':'فيجي',
+  'South Korea':'كوريا الجنوبية','North Korea':'كوريا الشمالية',
+  'United States':'الولايات المتحدة',
 };
 function ar(n){ return TEAM_AR[n]||n; }
 
