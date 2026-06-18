@@ -651,10 +651,12 @@ document.addEventListener('DOMContentLoaded',()=>{
         STATS.topDefense=teams.sort((a,b)=>a.ga-b.ga).slice(0,3).map(t=>({name:t.name,flag:t.flag,ar:t.ar,conceded:t.ga,matches:t.played}));
       }
 
-      // 2. Vrais buteurs depuis api/stats
+      // 2. Vrais stats depuis api/stats (buteurs + attaque + défense)
       try {
         const rs = await fetch('/api/stats');
         const ds = await rs.json();
+
+        // Hدافون
         const scorers = (ds.topScorers||[]).slice(0,3);
         if(scorers.length > 0){
           STATS.topScorers = scorers.map(s=>({
@@ -665,7 +667,32 @@ document.addEventListener('DOMContentLoaded',()=>{
             goals: s.goals,
           }));
         }
-      } catch(e){ console.warn('Stats scorers:', e.message); }
+
+        // أفضل هجمات من stats
+        const attack = (ds.topAttack||[]).slice(0,3);
+        if(attack.length > 0){
+          STATS.topAttack = attack.map(t=>({
+            name: t.name,
+            flag: t.name,
+            ar: ar(t.name),
+            goals: t.goals,
+            matches: t.played,
+          }));
+        }
+
+        // أفضل دفاعات من stats
+        const defense = (ds.topDefense||[]).slice(0,3);
+        if(defense.length > 0){
+          STATS.topDefense = defense.map(t=>({
+            name: t.name,
+            flag: t.name,
+            ar: ar(t.name),
+            conceded: t.conceded,
+            matches: t.played,
+          }));
+        }
+
+      } catch(e){ console.warn('Stats:', e.message); }
 
       render();
       // Mettre à jour les dots
