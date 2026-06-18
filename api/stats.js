@@ -13,76 +13,107 @@ export default async function handler(req, res) {
   if (req.method === 'OPTIONS') return res.status(200).end();
 
   try {
-    // 1. جلب قائمة المباريات
-    const sbRes = await fetch(`${ESPN_BASE}/scoreboard?limit=100`, {
-      signal: AbortSignal.timeout(8000),
-      headers: { 'User-Agent': 'Mozilla/5.0' }
-    });
-    const sbData = await sbRes.json();
-    const events = sbData.events || [];
-
-    // 2. تصفية المباريات المنتهية فقط
-    const finished = events.filter(e => {
-      const status = e.competitions?.[0]?.status?.type?.name || '';
-      return status === 'STATUS_FINAL' || status === 'STATUS_FULL_TIME';
-    });
-
-    // 3. جلب تفاصيل كل مباراة بالتوازي
     const scorerMap = {};
+    const teamGoals = {};
+    const teamConceded = {};
+    let totalMatches = 0;
+    let totalGoals = 0;
 
-    await Promise.allSettled(finished.map(async (e) => {
+    // جلب جميع الأيام منذ بداية البطولة
+    const start = new Date('2026-06-11');
+    const today = new Date();
+    const dates = [];
+    for (let d = new Date(start); d <= today; d.setDate(d.getDate() + 1)) {
+      dates.push(d.toISOString().split('T')[0].replace(/-/g,''));
+    }
+
+    await Promise.allSettled(dates.map(async (dateStr) => {
       try {
-        const detailRes = await fetch(`${ESPN_BASE}/summary?event=${e.id}`, {
-          signal: AbortSignal.timeout(6000),
-          headers: { 'User-Agent': 'Mozilla/5.0' }
-        });
-        if (!detailRes.ok) return;
-        const detail = await detailRes.json();
+        const r = await fetch(
+          `${ESPN_BASE}/scoreboard?dates=${dateStr}&limit=50`,
+          { signal: AbortSignal.timeout(10000), headers: { 'User-Agent': 'Mozilla/5.0' } }
+        );
+        if (!r.ok) return;
+        const data = await r.json();
 
-        // من scoring plays
-        const plays = detail.scoringPlays || [];
-        plays.forEach(p => {
-          const typeText = (p.type?.text || '').toLowerCase();
-          if (typeText.includes('own goal')) return;
+        for (const e of (data.events || [])) {
+          const comp = e.competitions?.[0];
+          if (!comp) continue;
 
-          const playerName = p.participants?.[0]?.athlete?.displayName
-                          || p.scoringPlay?.athlete?.displayName;
-          if (!playerName) return;
+          const status = comp.status?.type?.name || '';
+          const state  = comp.status?.type?.state || '';
+          // مباريات منتهية فقط
+          if (state !== 'post') continue;
 
-          const teamName = p.team?.displayName || '';
+          const home = comp.competitors?.find(t => t.homeAway === 'home');
+          const away = comp.competitors?.find(t => t.homeAway === 'away');
+          if (!home || !away) continue;
 
-          if (!scorerMap[playerName]) {
-            scorerMap[playerName] = { name: playerName, team: teamName, goals: 0 };
+          const homeTeam  = home.team?.displayName || '';
+          const awayTeam  = away.team?.displayName || '';
+          const homeId    = home.team?.id || '';
+          const awayId    = away.team?.id || '';
+          const homeScore = parseInt(home.score || '0');
+          const awayScore = parseInt(away.score || '0');
+
+          totalMatches++;
+
+          // إحصائيات الفرق
+          [homeTeam, awayTeam].forEach(t => {
+            if (!teamGoals[t])    teamGoals[t]    = { name:t, goals:0, played:0 };
+            if (!teamConceded[t]) teamConceded[t] = { name:t, conceded:0, played:0 };
+          });
+          teamGoals[homeTeam].goals    += homeScore;
+          teamGoals[homeTeam].played++;
+          teamGoals[awayTeam].goals    += awayScore;
+          teamGoals[awayTeam].played++;
+          teamConceded[homeTeam].conceded += awayScore;
+          teamConceded[homeTeam].played++;
+          teamConceded[awayTeam].conceded += homeScore;
+          teamConceded[awayTeam].played++;
+
+          // الهدافون من details
+          for (const d of (comp.details || [])) {
+            if (!d.scoringPlay) continue;
+            if (d.ownGoal)      continue;
+
+            const player = d.athletesInvolved?.[0]?.displayName;
+            if (!player) continue;
+
+            const teamId   = d.team?.id || '';
+            const teamName = teamId === homeId ? homeTeam : awayTeam;
+
+            if (!scorerMap[player]) {
+              scorerMap[player] = { name: player, team: teamName, goals: 0 };
+            }
+            scorerMap[player].goals++;
+            totalGoals++;
           }
-          scorerMap[playerName].goals++;
-        });
-
-        // من game details أيضاً
-        const gameDetail = detail.gameDetails || [];
-        gameDetail.forEach(d => {
-          const typeText = (d.type?.text || '').toLowerCase();
-          if (!typeText.includes('goal') || typeText.includes('own')) return;
-          const playerName = d.athletesInvolved?.[0]?.displayName;
-          if (!playerName) return;
-          const teamName = d.team?.displayName || '';
-          if (!scorerMap[playerName]) {
-            scorerMap[playerName] = { name: playerName, team: teamName, goals: 0 };
-          }
-          scorerMap[playerName].goals++;
-        });
-
-      } catch {}
+        }
+      } catch(err) {
+        console.error('Date error:', dateStr, err.message);
+      }
     }));
 
-    // 4. ترتيب الهدافين
     const topScorers = Object.values(scorerMap)
-      .filter(s => s.goals > 0)
       .sort((a,b) => b.goals - a.goals)
       .slice(0, 10);
 
+    const topAttack = Object.values(teamGoals)
+      .filter(t => t.played > 0)
+      .sort((a,b) => b.goals - a.goals)
+      .slice(0, 5);
+
+    const topDefense = Object.values(teamConceded)
+      .filter(t => t.played > 0)
+      .sort((a,b) => a.conceded - b.conceded)
+      .slice(0, 5);
+
     return res.status(200).json({
       topScorers,
-      matchesAnalyzed: finished.length,
+      topAttack,
+      topDefense,
+      debug: { totalMatches, totalGoals, dates: dates.length },
       timestamp: new Date().toISOString(),
     });
 
