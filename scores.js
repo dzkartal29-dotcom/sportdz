@@ -166,7 +166,7 @@ function ar(n){ return TEAM_AR[n]||n; }
       sc.className='lb-score live'; sc.textContent=`${m.homeScore??0}–${m.awayScore??0}`;
       cd.textContent=m.clock?`${m.clock}'`:'';
     } else if(m._s==='soon'){
-      badge.className='lb-badge soon'; sc.className='lb-score soon'; sc.textContent='VS';
+      badge.className='lb-badge soon'; sc.className='lb-score soon'; sc.textContent='ضد';
       const target=new Date(m.date);
       function tick(){
         const diff=target-Date.now();
@@ -180,7 +180,7 @@ function ar(n){ return TEAM_AR[n]||n; }
     } else {
       badge.className='lb-badge done'; badge.textContent='✓ انتهى';
       sc.className='lb-score done'; sc.textContent=`${m.homeScore??0}–${m.awayScore??0}`;
-      cd.textContent='FT';
+      cd.textContent='انتهى';
     }
   }
 
@@ -215,7 +215,7 @@ async function loadAlgWidget(){
       const sc=isHome?`${m.homeScore}–${m.awayScore}`:`${m.awayScore}–${m.homeScore}`;
       $('alg-score').textContent=sc; $('alg-status').textContent='انتهت'; $('alg-status').className='alg-status s-fin';
     } else {
-      $('alg-score').textContent='VS'; $('alg-status').textContent='قادمة'; $('alg-status').className='alg-status s-soon';
+      $('alg-score').textContent='ضد'; $('alg-status').textContent='قادمة'; $('alg-status').className='alg-status s-soon';
     }
   }catch(e){ console.error('AlgWidget:',e); }
 }
@@ -277,11 +277,11 @@ async function loadScores(){
         ?`<span class="match-score">${m.homeScore} – ${m.awayScore}</span>`
         :`<span class="match-vs">${formatTime(m.date)}</span>`;
       const stHTML=isLive
-        ?`<span class="match-status-live">مباشر</span>`
-        :isDone?`<span class="match-status-done">انتهى</span>`
-        :`<span class="match-time">${formatTime(m.date)}</span>`;
+        ?`<span class="match-status-live">🔴 مباشر</span>`
+        :isDone?`<span class="match-status-done">✓ انتهى</span>`
+        :`<span class="match-time">⏰ ${formatTime(m.date)}</span>`;
       return `<div class="match-row ${isAlg?'alg-match':''}">
-        <span class="match-group">${(m.group||'CdM').replace('Group','J')}</span>
+        <span class="match-group">${(m.group||'كأس العالم').replace('Group','المجموعة')}</span>
         <div class="match-teams">
           <span class="match-flag">${flagImg(m.homeTeam, 22)}</span>
           <span class="match-team">${ar(m.homeTeam)}</span>
@@ -341,13 +341,13 @@ function renderUpcoming(matches){
           <span class="up-tflag">${flagImg(m.homeTeam, 26)}</span>
           <span class="up-tname">${ar(m.homeTeam)}</span>
         </div>
-        <span class="up-vs">VS</span>
+        <span class="up-vs">ضد</span>
         <div class="up-team away">
           <span class="up-tflag">${flagImg(m.awayTeam, 26)}</span>
           <span class="up-tname">${ar(m.awayTeam)}</span>
         </div>
       </div>
-      <span class="up-grp">${(m.group||'').replace('Group','J')}</span>
+      <span class="up-grp">${(m.group||'').replace('Group','المجموعة')}</span>
     </div>`;
   }).join('');
 }
