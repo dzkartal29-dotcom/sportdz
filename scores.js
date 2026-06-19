@@ -356,33 +356,74 @@ function renderUpcoming(matches){
 // STANDINGS
 // ══════════════════════════════════════
 const LEAGUES=[
-  {code:'PL',name:'الدوري الإنجليزي',flag:'🏴󠁧󠁢󠁥󠁮󠁧󠁿'},
-  {code:'PD',name:'الدوري الإسباني',flag:'🇪🇸'},
-  {code:'BL1',name:'الدوري الألماني',flag:'🇩🇪'},
-  {code:'SA',name:'الدوري الإيطالي',flag:'🇮🇹'},
-  {code:'FL1',name:'الدوري الفرنسي',flag:'🇫🇷'},
-  {code:'CL',name:'دوري الأبطال',flag:'🏆'},
+  {code:'PL',  name:'الدوري الإنجليزي',  flag:'🏴󠁧󠁢󠁥󠁮󠁧󠁿', src:'fd'},
+  {code:'PD',  name:'الدوري الإسباني',   flag:'🇪🇸', src:'fd'},
+  {code:'BL1', name:'الدوري الألماني',   flag:'🇩🇪', src:'fd'},
+  {code:'SA',  name:'الدوري الإيطالي',   flag:'🇮🇹', src:'fd'},
+  {code:'FL1', name:'الدوري الفرنسي',    flag:'🇫🇷', src:'fd'},
+  {code:'CL',  name:'دوري الأبطال',      flag:'🏆', src:'fd'},
+  {code:'tur.1', name:'الدوري التركي',   flag:'🇹🇷', src:'espn'},
+  {code:'sau.1', name:'الدوري السعودي',  flag:'🇸🇦', src:'espn'},
+  {code:'alg.1', name:'الرابطة الجزائرية',flag:'🇩🇿', src:'espn'},
 ];
 
 async function loadStandings(code='PL'){
   const body=$('standings-body'); if(!body)return;
   body.innerHTML='<tr><td colspan="9" style="text-align:center;padding:20px"><div class="spinner" style="margin:0 auto;width:20px;height:20px;border-width:2px"></div></td></tr>';
+  
+  const lg = LEAGUES.find(l=>l.code===code);
+  const isESPN = lg?.src === 'espn';
+
   try{
-    const r=await fetch(`${API}?action=standings&code=${code}`);
-    const d=await r.json();
-    const table=d.standings?.[0]?.table||[];
-    if(!table.length){ body.innerHTML='<tr><td colspan="9" style="text-align:center;padding:20px;color:var(--muted)">البيانات غير متاحة حالياً</td></tr>'; return; }
-    const fm={'W':'fw','D':'fd','L':'fl'};
-    body.innerHTML=table.map((t,i)=>`
-      <tr>
-        <td><span class="rank-num ${i<4?'q':''}">${t.position}</span></td>
-        <td><div class="team-cell">${t.team.crest?`<img src="${t.team.crest}" class="team-crest" alt="">`:''}
-          <span class="team-lbl">${t.team.shortName||t.team.name}</span></div></td>
-        <td>${t.playedGames}</td><td>${t.won}</td><td>${t.draw}</td><td>${t.lost}</td>
-        <td>${t.goalsFor}:${t.goalsAgainst}</td>
-        <td class="pts-cell">${t.points}</td>
-        <td><div class="form-cell">${(t.form||'').split(',').slice(-5).map(f=>`<span class="${fm[f]||'fd'}">${f}</span>`).join('')}</div></td>
-      </tr>`).join('');
+    if(isESPN){
+      // ESPN standings
+      const r = await fetch(`https://site.api.espn.com/apis/v2/sports/soccer/${code}/standings`);
+      const d = await r.json();
+      const entries = d.children?.[0]?.standings?.entries || d.standings?.entries || [];
+      
+      if(!entries.length){ 
+        body.innerHTML='<tr><td colspan="9" style="text-align:center;padding:20px;color:var(--muted)">البيانات غير متاحة · الموسم لم يبدأ بعد</td></tr>'; 
+        return; 
+      }
+
+      body.innerHTML = entries.map((e,i)=>{
+        const stats = {};
+        (e.stats||[]).forEach(s => stats[s.name] = s.value);
+        const team = e.team;
+        return `<tr>
+          <td><span class="rank-num ${i<4?'q':''}">${i+1}</span></td>
+          <td><div class="team-cell">
+            ${team.logos?.[0]?.href ? `<img src="${team.logos[0].href}" class="team-crest" alt="">` : ''}
+            <span class="team-lbl">${team.shortDisplayName||team.displayName}</span>
+          </div></td>
+          <td>${stats.gamesPlayed||0}</td>
+          <td>${stats.wins||0}</td>
+          <td>${stats.ties||0}</td>
+          <td>${stats.losses||0}</td>
+          <td>${stats.pointsFor||0}:${stats.pointsAgainst||0}</td>
+          <td class="pts-cell">${stats.points||0}</td>
+          <td><div class="form-cell">—</div></td>
+        </tr>`;
+      }).join('');
+
+    } else {
+      // football-data standings
+      const r=await fetch(`${API}?action=standings&code=${code}`);
+      const d=await r.json();
+      const table=d.standings?.[0]?.table||[];
+      if(!table.length){ body.innerHTML='<tr><td colspan="9" style="text-align:center;padding:20px;color:var(--muted)">البيانات غير متاحة حالياً</td></tr>'; return; }
+      const fm={'W':'fw','D':'fd','L':'fl'};
+      body.innerHTML=table.map((t,i)=>`
+        <tr>
+          <td><span class="rank-num ${i<4?'q':''}">${t.position}</span></td>
+          <td><div class="team-cell">${t.team.crest?`<img src="${t.team.crest}" class="team-crest" alt="">`:''}
+            <span class="team-lbl">${t.team.shortName||t.team.name}</span></div></td>
+          <td>${t.playedGames}</td><td>${t.won}</td><td>${t.draw}</td><td>${t.lost}</td>
+          <td>${t.goalsFor}:${t.goalsAgainst}</td>
+          <td class="pts-cell">${t.points}</td>
+          <td><div class="form-cell">${(t.form||'').split(',').slice(-5).map(f=>`<span class="${fm[f]||'fd'}">${f}</span>`).join('')}</div></td>
+        </tr>`).join('');
+    }
   }catch(e){ body.innerHTML=`<tr><td colspan="9" style="text-align:center;padding:20px;color:var(--red)">${e.message}</td></tr>`; }
 }
 
