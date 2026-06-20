@@ -747,3 +747,60 @@ document.addEventListener('DOMContentLoaded',()=>{
     loadFromAPI();
   });
 })();
+
+// ══════════════════════════════════════
+// TICKER ACTUALITÉS ANIMÉ
+// ══════════════════════════════════════
+(function Ticker(){
+
+  async function load(){
+    const track = document.getElementById('ticker-track');
+    if(!track) return;
+
+    try{
+      // Charger les articles depuis Redis
+      let items = [];
+      try{
+        const r = await fetch('/api/generate-articles?action=list');
+        const d = await r.json();
+        items = (d.articles||[]).map(a=>{
+          if(typeof a==='string'){try{return JSON.parse(a);}catch{return null;}}
+          return a;
+        }).filter(a=>a&&a.title);
+      }catch{}
+
+      // Fallback RSS si pas d'articles
+      if(items.length < 3){
+        const r2 = await fetch(`${API}?action=articles`);
+        const d2 = await r2.json();
+        items = [...items, ...(d2.articles||[])];
+      }
+
+      if(!items.length) return;
+
+      // Créer les items du ticker (dupliqués pour boucle infinie)
+      const html = items.slice(0,15).map(a=>`
+        <a class="ticker-item" href="${a.source_url||'#'}" target="_blank" rel="noopener">
+          <span class="ticker-dot"></span>
+          ${a.title_ar || a.title || ''}
+        </a>
+      `).join('');
+
+      // Dupliquer pour animation infinie
+      track.innerHTML = html + html;
+
+      // Ajuster la vitesse selon le nombre d'items
+      const duration = Math.max(30, items.length * 4);
+      track.style.animationDuration = duration + 's';
+
+    }catch(e){
+      console.warn('Ticker error:', e.message);
+    }
+  }
+
+  document.addEventListener('DOMContentLoaded', ()=>{
+    load();
+    // Rafraîchir toutes les 5 minutes
+    setInterval(load, 300000);
+  });
+})();
