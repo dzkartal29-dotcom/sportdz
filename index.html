@@ -712,16 +712,42 @@ footer{background:#06080D;border-top:1px solid var(--border);padding:32px 16px 2
 <script>
 // ── COUNTDOWN ─────────────────────────────────
 (function(){
-  const kick = new Date('2026-06-17T02:00:00Z'); // الجزائر vs الأرجنتين 17 يونيو 03:00
+  // جميع مباريات الجزائر — المجموعة J
+  const ALG_MATCHES = [
+    { opp:'الأرجنتين',  date: new Date('2026-06-17T02:00:00Z') },
+    { opp:'النمسا',     date: new Date('2026-06-22T02:00:00Z') },
+    { opp:'الأردن',     date: new Date('2026-06-26T02:00:00Z') },
+  ];
+
+  function getNext(){
+    const now = Date.now();
+    return ALG_MATCHES.find(m => m.date > now) || ALG_MATCHES[ALG_MATCHES.length-1];
+  }
+
   function pad(n){return String(Math.max(0,n)).padStart(2,'0')}
+
   function tick(){
-    const diff = kick - Date.now();
-    if(diff<=0){return;}
+    const match = getNext();
+    const diff = match.date - Date.now();
+    const label = document.getElementById('cd-label');
+    if(label) label.textContent = 'الجزائر ضد ' + match.opp + ' · الوقت المتبقي';
+    if(diff<=0){
+      document.getElementById('cd-d').textContent='000';
+      document.getElementById('cd-h').textContent='00';
+      document.getElementById('cd-m').textContent='00';
+      document.getElementById('cd-s').textContent='00';
+      return;
+    }
     document.getElementById('cd-d').textContent = String(Math.floor(diff/86400000)).padStart(3,'0');
     document.getElementById('cd-h').textContent = pad(Math.floor((diff%86400000)/3600000));
     document.getElementById('cd-m').textContent = pad(Math.floor((diff%3600000)/60000));
     document.getElementById('cd-s').textContent = pad(Math.floor((diff%60000)/1000));
   }
+
+  // Ajouter id au label
+  const cdLabel = document.querySelector('.cd-label');
+  if(cdLabel) cdLabel.id = 'cd-label';
+
   tick(); setInterval(tick,1000);
 })();
 
