@@ -61,7 +61,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:15
 .grad-green{background:linear-gradient(90deg,var(--green),#00ffaa);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
 
 /* LIVE BAR */
-.live-bar{position:fixed;top:0;left:0;right:0;z-index:200;background:rgba(8,10,15,0.97);border-bottom:1px solid rgba(232,0,61,0.3);backdrop-filter:blur(12px);padding:0 16px;height:40px;display:flex;align-items:center;gap:10px}
+.live-bar{position:fixed;top:36px;left:0;right:0;z-index:200;background:rgba(8,10,15,0.97);border-bottom:1px solid rgba(232,0,61,0.3);backdrop-filter:blur(12px);padding:0 16px;height:40px;display:flex;align-items:center;gap:10px}
 .lb-badge{font-size:9px;font-weight:700;letter-spacing:1px;white-space:nowrap;padding:3px 8px;border-radius:2px}
 .lb-badge.live{background:rgba(232,0,61,0.15);color:var(--red);animation:pulse 1.5s infinite}
 .lb-badge.soon{color:var(--green)}
@@ -79,7 +79,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:15
 .lb-btn:hover{color:#fff;border-color:var(--muted)}
 
 /* NAV */
-nav{position:fixed;top:40px;left:0;right:0;z-index:100;background:rgba(8,10,15,0.95);border-bottom:1px solid var(--border);backdrop-filter:blur(12px);padding:0 16px;height:56px;display:flex;align-items:center;justify-content:space-between}
+nav{position:fixed;top:76px;left:0;right:0;z-index:100;background:rgba(8,10,15,0.95);border-bottom:1px solid var(--border);backdrop-filter:blur(12px);padding:0 16px;height:56px;display:flex;align-items:center;justify-content:space-between}
 .logo{text-decoration:none;display:flex;align-items:center}
 .nav-menu{display:flex;gap:2px;list-style:none;overflow-x:auto;scrollbar-width:none}
 .nav-menu::-webkit-scrollbar{display:none}
@@ -89,7 +89,7 @@ nav{position:fixed;top:40px;left:0;right:0;z-index:100;background:rgba(8,10,15,0
 .nav-live{background:var(--green);color:#000;font-size:10px;font-weight:700;padding:7px 14px;border-radius:2px;text-decoration:none;white-space:nowrap;border:none;cursor:pointer}
 
 /* BODY OFFSET */
-body{padding-top:96px}
+body{padding-top:132px}
 
 /* HERO */
 .hero{min-height:calc(100vh - 96px);display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;padding:40px 16px;position:relative;overflow:hidden}
@@ -283,6 +283,79 @@ section{padding:60px 16px}
 @keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
 
 
+
+/* ══ TICKER ACTUALITÉS ANIMÉ ══ */
+.ticker-wrap {position:fixed;top:0;left:0;right:0;z-index:201;
+  background:#1a0a0a;
+  border-top:2px solid var(--red);
+  border-bottom:1px solid rgba(232,0,61,0.3);
+  padding:0;
+  overflow:hidden;
+  position:relative;
+  height:36px;
+  display:flex;
+  align-items:center;
+}
+.ticker-label {
+  background:var(--red);
+  color:#fff;
+  font-size:10px;
+  font-weight:800;
+  letter-spacing:2px;
+  padding:0 14px;
+  height:100%;
+  display:flex;
+  align-items:center;
+  white-space:nowrap;
+  z-index:2;
+  flex-shrink:0;
+}
+.ticker-content {
+  display:flex;
+  align-items:center;
+  overflow:hidden;
+  flex:1;
+  height:100%;
+  position:relative;
+}
+.ticker-track {
+  display:flex;
+  align-items:center;
+  animation:tickerScroll 40s linear infinite;
+  white-space:nowrap;
+}
+.ticker-track:hover { animation-play-state:paused; }
+@keyframes tickerScroll {
+  0%   { transform:translateX(0); }
+  100% { transform:translateX(-50%); }
+}
+.ticker-item {
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  padding:0 24px;
+  font-size:12px;
+  font-weight:600;
+  color:var(--text);
+  cursor:pointer;
+  transition:color .2s;
+  text-decoration:none;
+  border-right:1px solid rgba(232,0,61,0.2);
+}
+.ticker-item:hover { color:var(--red); }
+.ticker-dot {
+  width:5px;height:5px;
+  background:var(--red);
+  border-radius:50%;
+  flex-shrink:0;
+  animation:pulse 2s infinite;
+}
+.ticker-fade-r {
+  position:absolute;right:0;top:0;bottom:0;width:40px;
+  background:linear-gradient(to left,#1a0a0a,transparent);
+  pointer-events:none;z-index:1;
+}
+
 /* ══ TOP STATS WIDGET ══ */
 .ts-section{background:#06080D;padding:48px 16px}
 .ts-wrap{max-width:480px;margin:0 auto}
@@ -371,6 +444,18 @@ footer{background:#06080D;border-top:1px solid var(--border);padding:32px 16px 2
     <span class="lb-counter" id="lb-counter" style="font-size:9px;color:var(--muted);margin-left:4px"></span>
     <button class="lb-btn" onclick="lbNav(-1)">›</button>
     <button class="lb-btn" onclick="lbNav(1)">‹</button>
+  </div>
+</div>
+
+
+<!-- ══ TICKER ACTUALITÉS ══ -->
+<div class="ticker-wrap" id="ticker-wrap">
+  <div class="ticker-label">🔴 عاجل</div>
+  <div class="ticker-content">
+    <div class="ticker-track" id="ticker-track">
+      <span class="ticker-item"><span class="ticker-dot"></span>جاري تحميل آخر الأخبار...</span>
+    </div>
+    <div class="ticker-fade-r"></div>
   </div>
 </div>
 
