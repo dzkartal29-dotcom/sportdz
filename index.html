@@ -92,7 +92,7 @@ nav{position:fixed;top:76px;left:0;right:0;z-index:100;background:rgba(8,10,15,0
 body{padding-top:132px}
 
 /* HERO */
-.hero{min-height:calc(100vh - 96px);display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;padding:40px 16px;position:relative;overflow:hidden}
+.hero{min-height:auto;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;padding:40px 16px;position:relative;overflow:hidden;background:linear-gradient(180deg,#0f0000 0%,#0A0A0A 100%)}
 .hero-grid{position:absolute;inset:0;background-image:linear-gradient(rgba(0,86,184,0.04) 1px,transparent 1px),linear-gradient(90deg,rgba(0,86,184,0.04) 1px,transparent 1px);background-size:60px 60px;pointer-events:none}
 .hero-glow1{position:absolute;width:400px;height:400px;background:radial-gradient(circle,rgba(0,86,184,0.15) 0%,transparent 70%);top:-100px;right:-100px;pointer-events:none}
 .hero-glow2{position:absolute;width:350px;height:350px;background:radial-gradient(circle,rgba(232,0,61,0.12) 0%,transparent 70%);bottom:0;left:-60px;pointer-events:none}
@@ -426,6 +426,25 @@ footer{background:#06080D;border-top:1px solid var(--border);padding:32px 16px 2
 </style>
 <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6241036027500609"
      crossorigin="anonymous"></script>
+
+  <!-- OneSignal Push Notifications -->
+  <script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
+  <script>
+    window.OneSignalDeferred = window.OneSignalDeferred || [];
+    OneSignalDeferred.push(async function(OneSignal) {
+      await OneSignal.init({
+        appId: "123c4bc1-b60b-4f14-93e0-a8c3b066db28",
+      });
+    });
+
+    // Envoyer notification quand Algérie joue
+    OneSignalDeferred.push(async function(OneSignal) {
+      OneSignal.Notifications.addEventListener('click', function(event) {
+        console.log('Notification cliquée:', event);
+      });
+    });
+  </script>
+
 </head>
 <body>
 
@@ -483,9 +502,16 @@ footer{background:#06080D;border-top:1px solid var(--border);padding:32px 16px 2
   <div class="hero-grid"></div>
   <div class="hero-glow1"></div>
   <div class="hero-glow2"></div>
-  <div class="hero-eyebrow"><span class="hero-dot"></span>11 يونيو – 19 يوليو 2026 · الولايات المتحدة · كندا · المكسيك</div>
-  <h1 class="hero-title"><span class="grad">كأس</span><br><span style="color:#fff">العالم 2026</span></h1>
-  <p class="hero-sub">48 منتخباً · 16 مدينة · كأس واحدة · أكبر بطولة في تاريخ كرة القدم</p>
+  <!-- شعار MXP Sport -->
+  <div style="margin-bottom:20px">
+    <img src="mxp-logo.png" style="height:80px;width:auto;object-fit:contain;border-radius:8px" alt="MXP Sport">
+  </div>
+  <div class="hero-eyebrow"><span class="hero-dot"></span>أخبار · نتائج · إحصائيات · مباشر</div>
+  <h1 class="hero-title" style="font-size:clamp(32px,7vw,72px)">
+    <span class="grad">كرة القدم</span><br>
+    <span style="color:#fff">في متناول يدك</span>
+  </h1>
+  <p class="hero-sub">كأس العالم 2026 · الدوريات الكبرى · مباريات الجزائر · نتائج مباشرة</p>
 
   <!-- Widget Algérie -->
   <div class="alg-widget">
