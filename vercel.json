@@ -3,12 +3,17 @@
     "api/proxy.js": { "maxDuration": 30 },
     "api/generate-articles.js": { "maxDuration": 60 },
     "api/live.js": { "maxDuration": 15 },
-    "api/stats.js": { "maxDuration": 15 }
+    "api/stats.js": { "maxDuration": 30 },
+    "api/notify-algeria.js": { "maxDuration": 15 }
   },
   "crons": [
     {
       "path": "/api/generate-articles?action=generate",
       "schedule": "0 */6 * * *"
+    },
+    {
+      "path": "/api/notify-algeria",
+      "schedule": "*/30 * * * *"
     }
   ],
   "headers": [
